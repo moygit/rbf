@@ -7,6 +7,7 @@ import (
     // "io/ioutil"
     // "os"
     // "math/rand"
+    "encoding/gob"
     "regexp"
     // "sort"
     "strings"
@@ -55,6 +56,8 @@ func (f Followgrams) FromStringInPlace(input string, featureArray []byte) {
 
 
 func init() {
+    gob.Register(Followgrams{})
+
     DefaultFollowgrams = Followgrams{FOLLOWGRAM_DEFAULT_WINDOW_SIZE}
 
     ALPHABET_SIZE = len(ALPHABET)
