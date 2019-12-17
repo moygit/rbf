@@ -10,7 +10,7 @@ import (
 
     "github.com/adrg/strutil"
     "github.com/adrg/strutil/metrics"
-    rbfstrings "rbf/strings"
+    "rbf/followgrams"
 
     // for logging only:
     // "log"
@@ -34,7 +34,7 @@ type ResultSimilarityPair struct {
 func init() {
     // SIMILARITY_FUNC = rbfstrings.Jaccard2gramSimilarity
     lev := metrics.NewLevenshtein()
-    CALCULATE_FEATURES_FUNC = rbfstrings.GetFollowgrams
+    CALCULATE_FEATURES_FUNC = followgrams.FromString
     SIMILARITY_FUNC = func(s1, s2 string) float64 {
             return strutil.Similarity(s1, s2, lev)
         }

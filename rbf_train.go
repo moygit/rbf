@@ -25,7 +25,7 @@ import (
     "sort"
     // "time"
 
-    rbfstrings "rbf/strings"
+    "rbf/followgrams"
 
     // for logging only:
     "log"
@@ -43,7 +43,7 @@ var logger *log.Logger
 func init() {
     file, _ := os.OpenFile(LOG_FILENAME, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
     logger = log.New(file, "train_rbf ", log.Ldate|log.Ltime|log.Lshortfile)
-    CALCULATE_FEATURES_FOR_ARRAY = rbfstrings.GetFollowgramsForArray
+    CALCULATE_FEATURES_FOR_ARRAY = followgrams.FromStringArray
 treeStatsFile, _ = os.Create("tree_stats.txt")
 }
 
