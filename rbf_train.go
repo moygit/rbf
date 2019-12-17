@@ -25,7 +25,7 @@ import (
     "sort"
     // "time"
 
-    "rbf/followgrams"
+    "rbf/features"
 
     // for logging only:
     "log"
@@ -35,7 +35,6 @@ import (
 
 const LOG_FILENAME = "train.log"
 
-var CALCULATE_FEATURES_FOR_ARRAY func([]string) [][]byte
 var treeStatsFile *os.File
 var treeNum int
 var logger *log.Logger
@@ -43,7 +42,6 @@ var logger *log.Logger
 func init() {
     file, _ := os.OpenFile(LOG_FILENAME, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
     logger = log.New(file, "train_rbf ", log.Ldate|log.Ltime|log.Lshortfile)
-    CALCULATE_FEATURES_FOR_ARRAY = followgrams.FromStringArray
 treeStatsFile, _ = os.Create("tree_stats.txt")
 }
 
@@ -241,21 +239,19 @@ func TrainOneTree(features [][]byte) RandomBinaryTree {
 
 
 // Given an array of strings, convert it to an array of features and then train.
-func TrainForestWithStrings(trainingStrings []string) RandomBinaryForest {
-    features := CALCULATE_FEATURES_FOR_ARRAY(trainingStrings)
-    return TrainForestWithFeatureArray(trainingStrings, features)
-}
+func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
+    // get features:
+    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
+    features := calculateFeaturesForArray(trainingStrings)
 
-
-// Given arrays of strings and features, train NUM_TREES trees.
-func TrainForestWithFeatureArray(trainingStrings []string, features [][]byte) RandomBinaryForest {
+    // make and train trees:
     trees := make([]RandomBinaryTree, NUM_TREES)
     for i := 0; i < NUM_TREES; i++ {
 treeNum = i
         trees[i] = TrainOneTree(features)
     }
 treeStatsFile.Close()
-    return RandomBinaryForest{trainingStrings, trees}
+    return RandomBinaryForest{trainingStrings, trees, featureSetConfigs, calculateFeatures, calculateFeaturesForArray}
 }
 
 

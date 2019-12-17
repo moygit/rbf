@@ -43,19 +43,6 @@ func makeTestForest() RandomBinaryForest {
 }
 
 
-func TestFindString(t *testing.T) {
-    // given:
-    queryString := "aaaa"
-    tree := makeTestTree()
-    // when:
-    queryResult := tree.FindString(queryString)[0]
-    // then:
-    if TRAINING_ADDRS[queryResult] != "aaa" {
-        t.Errorf("queryResult == %d, expected %d", queryResult, 0)
-    }
-}
-
-
 func TestFindStringWithSimilarities(t *testing.T) {
     // given:
     queryString := "aaaa"

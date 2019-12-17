@@ -8,7 +8,7 @@ import (
     "io"
     "io/ioutil"
     "os"
-    "strings"
+    // "strings"
 )
 
 
@@ -51,7 +51,7 @@ func readTreeFromReader(reader io.Reader) RandomBinaryTree {
     return RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
 }
 
-func ReadTreeFromFile(filename string) RandomBinaryTree {
+func readTreeFromFile(filename string) RandomBinaryTree {
     // TODO: handle errors
     reader, _ := os.Open(filename)
     defer reader.Close()
@@ -59,7 +59,7 @@ func ReadTreeFromFile(filename string) RandomBinaryTree {
 }
 
 
-func (tree RandomBinaryTree) WriteToFile(filename string) {
+func (tree RandomBinaryTree) writeToFile(filename string) {
     // TODO: handle errors
     writer, _ := os.Create(filename)
     defer writer.Close()
@@ -77,39 +77,39 @@ func (tree RandomBinaryTree) writeToWriter(writer io.Writer) {
 }
 
 
-func ReadForestFromFile(filename string) RandomBinaryForest {
-    // TODO: handle errors
-    reader, _ := os.Open(filename)
-    defer reader.Close()
-    return ReadForestFromReader(reader)
-}
-
-// TODO: error-handling
-func ReadForestFromReader(reader io.Reader) RandomBinaryForest {
-    // read numTrees first, then read that many trees
-    var numTrees int32
-    binary.Read(reader, binary.LittleEndian, &numTrees)
-    trees := make([]RandomBinaryTree, numTrees)
-    for i := int32(0); i < numTrees; i++ {
-        trees[i] = readTreeFromReader(reader)
-    }
-
-    // now read training-strings
-    var numTrainingStrings int32
-    binary.Read(reader, binary.LittleEndian, &numTrainingStrings)
-    trainingStrings := make([]string, numTrainingStrings)
-    scanner := bufio.NewScanner(reader)
-    for i := 0; scanner.Scan(); i++ {
-        trainingStrings[i] = strings.TrimSpace(scanner.Text())
-    }
- 
-    // TODO:
-    // double-check
-    if len(trainingStrings) != int(numTrainingStrings) {
-        fmt.Fprintf(os.Stderr, READ_CHECK_ERROR_TEMPLATE, numTrainingStrings, len(trainingStrings))
-    }
-    return RandomBinaryForest{trainingStrings, trees}
-}
+// func ReadForestFromFile(filename string) RandomBinaryForest {
+//     // TODO: handle errors
+//     reader, _ := os.Open(filename)
+//     defer reader.Close()
+//     return ReadForestFromReader(reader)
+// }
+// 
+// // TODO: error-handling
+// func readForestFromReader(reader io.Reader) RandomBinaryForest {
+//     // read numTrees first, then read that many trees
+//     var numTrees int32
+//     binary.Read(reader, binary.LittleEndian, &numTrees)
+//     trees := make([]RandomBinaryTree, numTrees)
+//     for i := int32(0); i < numTrees; i++ {
+//         trees[i] = readTreeFromReader(reader)
+//     }
+// 
+//     // now read training-strings
+//     var numTrainingStrings int32
+//     binary.Read(reader, binary.LittleEndian, &numTrainingStrings)
+//     trainingStrings := make([]string, numTrainingStrings)
+//     scanner := bufio.NewScanner(reader)
+//     for i := 0; scanner.Scan(); i++ {
+//         trainingStrings[i] = strings.TrimSpace(scanner.Text())
+//     }
+//  
+//     // TODO:
+//     // double-check
+//     if len(trainingStrings) != int(numTrainingStrings) {
+//         fmt.Fprintf(os.Stderr, READ_CHECK_ERROR_TEMPLATE, numTrainingStrings, len(trainingStrings))
+//     }
+//     return RandomBinaryForest{trainingStrings, trees}
+// }
 
 func (forest RandomBinaryForest) writeToWriter(writer io.Writer) {
     // write trees

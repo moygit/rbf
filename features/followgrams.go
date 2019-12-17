@@ -1,4 +1,4 @@
-package followgrams
+package features
 
 
 import (
@@ -35,7 +35,28 @@ var NON_ALNUM_PATTERN *regexp.Regexp
 var CHAR_REVERSE_MAP map[int]string
 
 
+
+//----------------------------------------------------------------------------------------------------
+// Wrapper around followgrams to provide FeatureSetConfig
+var DefaultFollowgrams Followgrams
+
+type Followgrams struct {
+    WindowSize int
+}
+
+func (f Followgrams) Size() int32 {
+    return int32(NUM_FOLLOWGRAMS)
+}
+
+func (f Followgrams) FromStringInPlace(input string, featureArray []byte) {
+    getFollowgramsInPlaceWithWindowSize(input, f.WindowSize, featureArray)
+}
+//----------------------------------------------------------------------------------------------------
+
+
 func init() {
+    DefaultFollowgrams = Followgrams{FOLLOWGRAM_DEFAULT_WINDOW_SIZE}
+
     ALPHABET_SIZE = len(ALPHABET)
     NUM_FOLLOWGRAMS = ALPHABET_SIZE * ALPHABET_SIZE
 

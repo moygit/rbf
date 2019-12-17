@@ -10,7 +10,6 @@ import (
 
     "github.com/adrg/strutil"
     "github.com/adrg/strutil/metrics"
-    "rbf/followgrams"
 
     // for logging only:
     // "log"
@@ -20,7 +19,6 @@ import (
 
 const NUM_RESULTS_TO_RETURN = 1
 const CONSIDER_SIMILARITY_THRESHOLD = 0.4
-var CALCULATE_FEATURES_FUNC func(string) []byte
 var SIMILARITY_FUNC func(string, string) float64
 
 
@@ -34,7 +32,6 @@ type ResultSimilarityPair struct {
 func init() {
     // SIMILARITY_FUNC = rbfstrings.Jaccard2gramSimilarity
     lev := metrics.NewLevenshtein()
-    CALCULATE_FEATURES_FUNC = followgrams.FromString
     SIMILARITY_FUNC = func(s1, s2 string) float64 {
             return strutil.Similarity(s1, s2, lev)
         }
@@ -62,21 +59,13 @@ func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
 }
 
 
-// Convert an input string into a feature-array and then search for it in this tree.
-// Return a list of indices into the list of training-strings.
-func (tree RandomBinaryTree) FindString(queryString string) []int32 {
-    queryPoint := CALCULATE_FEATURES_FUNC(queryString)
-    return tree.FindPoint(queryPoint)
-}
-
-
 // Search for the given input string in the given forest. Then get
 // matching strings from the given list of training-strings, and get
 // each result string's distance from the input string.
 // Return the (upto) NUM_RESULTS_TO_RETURN best results.
 func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) (ResultSimilarityPair, int, int) {
 //func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) []ResultSimilarityPair {
-    queryPoint := CALCULATE_FEATURES_FUNC(queryString)
+    queryPoint := forest.calculateFeatures(queryString)
 
 totalCount := 0
     // query each tree and get results (indices into forest.trainingStrings)

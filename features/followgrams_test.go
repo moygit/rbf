@@ -1,4 +1,4 @@
-package followgrams
+package features
 
 
 import (
@@ -39,13 +39,6 @@ func TestGetFollowgrams(t *testing.T) {
        false {
         t.Errorf("abcdefgh 3-followgrams are wrong :-(")
     }
-    if !sliceIsSingleValue(followgrams[0:1], byte(0)) ||
-       !sliceIsSingleValue(followgrams[1:4], byte(1)) ||
-       !sliceIsSingleValue(followgrams[4:39], byte(0)) ||
-       !sliceIsSingleValue(followgrams[39:42], byte(1)) ||
-       !sliceIsSingleValue(followgrams[42:76], byte(0)) {
-        t.Errorf("abcdefgh 3-followgrams are wrong :-(")
-    }
 
     // given/when:
     followgrams = getFollowgramsWithWindowSize("aaaaaaaa", 6)
@@ -56,4 +49,3 @@ func TestGetFollowgrams(t *testing.T) {
         t.Errorf("got non-zero count for some non-aa value")
     }
 }
-

@@ -1,6 +1,9 @@
 package rbf
 
 
+import "rbf/features"
+
+
 const NUM_TREES = 20
 const TREE_SIZE = 1 << 25 // roughly 32M
 
@@ -33,4 +36,7 @@ type RandomBinaryForest struct {
     trainingStrings     []string
     // TODO: make this private
     Trees               []RandomBinaryTree
+    FeatureSetConfigs   []features.FeatureSetConfig
+    calculateFeatures   func(string) []byte
+    calculateFeaturesForArray   func([]string) [][]byte
 }
