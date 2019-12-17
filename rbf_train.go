@@ -25,7 +25,7 @@ import (
     "sort"
     // "time"
 
-    rbf "rbf/features"
+    features "rbf/features"
 
     // for logging only:
     "log"
@@ -61,11 +61,11 @@ func check(e error) {
 // Returns: for feature `feature_num`:
 // - the frequency of each integer value in [0, 255]
 // - the sum of all feature values (i.e. the weighted sum over the frequency array)
-func getSingleFeatureFrequencies(rowIndex []int32, features [][]byte, featureNum, indexStart, indexEnd int32) ([]int32, int32) {
+func getSingleFeatureFrequencies(rowIndex []int32, featureArray [][]byte, featureNum, indexStart, indexEnd int32) ([]int32, int32) {
     counts := make([]int32, MAX_FEATURE_VALUE+1)
     var weightedTotal int32 = 0
     for rowNum := indexStart; rowNum < indexEnd; rowNum++ {
-        featureValue := features[rowNum][featureNum]
+        featureValue := featureArray[rowIndex[rowNum]][featureNum]
         counts[featureValue] += 1
         weightedTotal += int32(featureValue)
     }
@@ -86,7 +86,7 @@ func getSingleFeatureFrequencies(rowIndex []int32, features [][]byte, featureNum
 
 
 // Select a random subset of features and get the frequencies for those features.
-func selectRandomFeaturesAndGetFrequencies(features [][]byte, rowIndex []int32, indexStart, indexEnd int32) ([]int32, [][]int32, []int32) {
+func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int32, indexStart, indexEnd int32) ([]int32, [][]int32, []int32) {
     featureSubset := make([]int32, SQRT_NUM_FEATURES)
     featureFrequencies := make([][]int32, SQRT_NUM_FEATURES)
     featureWeightedTotals := make([]int32, SQRT_NUM_FEATURES)
@@ -99,7 +99,7 @@ func selectRandomFeaturesAndGetFrequencies(features [][]byte, rowIndex []int32, 
         }
         featuresAlreadySelected[featureNum] = true
         featureSubset[i] = featureNum
-        featureFrequencies[i], featureWeightedTotals[i] = getSingleFeatureFrequencies(rowIndex, features, featureNum, indexStart, indexEnd)
+        featureFrequencies[i], featureWeightedTotals[i] = getSingleFeatureFrequencies(rowIndex, featureArray, featureNum, indexStart, indexEnd)
     }
     return featureSubset, featureFrequencies, featureWeightedTotals
 }
@@ -204,12 +204,12 @@ func getBestFeature(featureFrequencies [][]int32, featureWeightedTotals []int32,
 // quicksort-type partitioning of rowIndex[indexStart..indexEnd) based on whether the
 // feature `featureNum` is less-than-or-equal-to or greater-than splitValue
 // pre-req: indexEnd - indexStart is at least 2
-func quickPartition(rowIndex []int32, features [][]byte, indexStart, indexEnd, featureNum int32, splitValue byte) int32 {
+func quickPartition(rowIndex []int32, featureArray [][]byte, indexStart, indexEnd, featureNum int32, splitValue byte) int32 {
     for i, j := indexStart, indexEnd-1; i < j; {
-        for i < indexEnd && features[rowIndex[i]][featureNum] <= splitValue {
+        for i < indexEnd && featureArray[rowIndex[i]][featureNum] <= splitValue {
             i += 1
         }
-        for j >= indexStart && features[rowIndex[j]][featureNum] > splitValue {
+        for j >= indexStart && featureArray[rowIndex[j]][featureNum] > splitValue {
             j -= 1
         }
         if i >= j {
@@ -223,8 +223,8 @@ func quickPartition(rowIndex []int32, features [][]byte, indexStart, indexEnd, f
 
 // Allocate space for the tree's component arrays and then
 // call the recursive `calculateOneNode` function, which does the real training.
-func trainOneTree(treeNum int, features [][]byte) RandomBinaryTree {
-    rowIndex := make([]int32, len(features))
+func trainOneTree(treeNum int, featureArray [][]byte) RandomBinaryTree {
+    rowIndex := make([]int32, len(featureArray))
     for i := int32(0); i < int32(len(rowIndex)); i++ {
         rowIndex[i] = i
     }
@@ -232,22 +232,22 @@ func trainOneTree(treeNum int, features [][]byte) RandomBinaryTree {
     treeSecond := make([]int32, TREE_SIZE)
     var numInternalNodes int32
     var numLeaves int32
-    calculateOneNode(treeNum, features, rowIndex, treeFirst, treeSecond, &numInternalNodes, &numLeaves, 0, int32(len(rowIndex)), 0, 0)
+    calculateOneNode(treeNum, featureArray, rowIndex, treeFirst, treeSecond, &numInternalNodes, &numLeaves, 0, int32(len(rowIndex)), 0, 0)
     return RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
 }
 
 
 // Given an array of strings, convert it to an array of features and then train.
-func TrainForest(trainingStrings []string, featureSetConfigs []rbf.FeatureSetConfig) RandomBinaryForest {
+func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
     // get features:
-    calculateFeatures, calculateFeaturesForArray := rbf.MakeFeatureCalculationFunctions(featureSetConfigs)
-    features := calculateFeaturesForArray(trainingStrings)
+    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
+    featureArray := calculateFeaturesForArray(trainingStrings)
 
     // make and train trees:
     trees := make([]RandomBinaryTree, NUM_TREES)
     for i := 0; i < NUM_TREES; i++ {
         func() {
-            trees[i] = trainOneTree(i, features)
+            trees[i] = trainOneTree(i, featureArray)
         }()
     }
 treeStatsFile.Close()
@@ -280,7 +280,7 @@ treeStatsFile.Close()
 // - Parallel calls to `calculateOneNode` will look at non-intersecting views.
 // - Child calls will look at distinct sub-views of this view.
 // - No two calls to `calculateOneNode` will have the same treeArrayPos
-func calculateOneNode(treeNum int, features [][]byte, rowIndex, treeFirst, treeSecond []int32,
+func calculateOneNode(treeNum int, featureArray [][]byte, rowIndex, treeFirst, treeSecond []int32,
                       numInternalNodes, numLeaves *int32,
                       indexStart, indexEnd int32, treeArrayPos int, depth int) {
     // logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
@@ -308,10 +308,10 @@ fmt.Fprintf(treeStatsFile, "%d,%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", tree
     // TODO (not sure where): pick feature so that each side has at least a third of data, else don't bother splitting if below a threshold
     //      or look at more features or something
         // logger.Printf("DEBUG: splitting node")
-        featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(features, rowIndex, indexStart, indexEnd)
+        featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, indexStart, indexEnd)
         bestFeatureIndex, bestFeatureSplitValue := getBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
         bestFeatureNum := featureSubset[bestFeatureIndex]
-        indexSplit := quickPartition(rowIndex, features, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
+        indexSplit := quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
         // logger.Printf("DEBUG: bestFeatureSplitValue: %d, bestFeatureNum: %d, indexSplit: %d\n", bestFeatureSplitValue, bestFeatureNum, indexSplit)
 
         if indexSplit == indexStart || indexSplit == indexEnd {
@@ -319,10 +319,10 @@ fmt.Fprintf(treeStatsFile, "%d,%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", tree
             logger.Printf("DEBUG: bad split; feature-num: %d, count: %d", bestFeatureNum, indexEnd-indexStart)
         }
         treeFirst[treeArrayPos], treeSecond[treeArrayPos] = bestFeatureNum, int32(bestFeatureSplitValue)
-fmt.Fprintf(treeStatsFile, "%d,%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, bestFeatureNum, bestFeatureSplitValue, rbf.CHAR_REVERSE_MAP[bestFeatureNum])
+fmt.Fprintf(treeStatsFile, "%d,%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, bestFeatureNum, bestFeatureSplitValue, features.CHAR_REVERSE_MAP[bestFeatureNum])
         // TODO: REMOVE THIS!
         *numInternalNodes += 1
-        calculateOneNode(treeNum, features, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
-        calculateOneNode(treeNum, features, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
+        calculateOneNode(treeNum, featureArray, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
+        calculateOneNode(treeNum, featureArray, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
 }

@@ -40,3 +40,9 @@ type RandomBinaryForest struct {
     calculateFeatures   func(string) []byte
     calculateFeaturesForArray   func([]string) [][]byte
 }
+
+
+func NewRBF(trainingStrings []string, trees []RandomBinaryTree, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
+    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
+    return RandomBinaryForest{trainingStrings, trees, featureSetConfigs, calculateFeatures, calculateFeaturesForArray}
+}

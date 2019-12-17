@@ -7,6 +7,8 @@ import (
     "os"
     // "reflect"
     "testing"
+
+    "rbf/features"
 )
 
 
@@ -39,7 +41,8 @@ func makeTestTree() RandomBinaryTree {
 func makeTestForest() RandomBinaryForest {
     addrs := []string{"aaa", "abc"}
     trees := []RandomBinaryTree{makeTestTree(), makeTestTree()}
-    return RandomBinaryForest{addrs, trees}
+    featureSetConfigs := []features.FeatureSetConfig{ features.DefaultFollowgrams }
+    return NewRBF(addrs, trees, featureSetConfigs)
 }
 
 
@@ -48,13 +51,9 @@ func TestFindStringWithSimilarities(t *testing.T) {
     queryString := "aaaa"
     forest := makeTestForest()
     // when:
-    queryResults := forest.FindStringWithSimilarities(queryString)
+    queryResult, _, _ := forest.FindStringWithSimilarities(queryString)
     // then:
-    if queryResults[0].Result != "aaa" {
-        t.Errorf("queryResults[0].Result == %s, expected %s", queryResults[0].Result, TRAINING_ADDRS[0])
-    }
-    if queryResults[1].Result != "aaa" {
-        t.Errorf("queryResults[1].Result == %s, expected %s", queryResults[1].Result, TRAINING_ADDRS[0])
+    if queryResult.Result != "aaa" {
+        t.Errorf("queryResult.Result == %s, expected %s", queryResult.Result, TRAINING_ADDRS[0])
     }
 }
-
