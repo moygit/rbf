@@ -1,6 +1,12 @@
 package features
 
 
+import (
+    "regexp"
+    "strings"
+)
+
+
 // Example use:
 // featureSetConfig := []FeatureSetConfig{ features.DefaultFollowgrams, features.DefaultOccurrenceCounts }
 
@@ -12,10 +18,37 @@ type FeatureSetConfig interface {
 }
 
 
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789 "
+var ALPHABET_SIZE int
+var CHAR_MAP map[byte]int
+var NON_ALNUM_PATTERN *regexp.Regexp
+
+// TODO: remove
+var CHAR_REVERSE_MAP map[int32]string
+
+
 type featureSetRealized struct {
     start int
     end int
     fromStringInPlace func(s string, features []byte)
+}
+
+
+func init() {
+    ALPHABET_SIZE = len(ALPHABET)
+    NON_ALNUM_PATTERN = regexp.MustCompile("[^a-z0-9]+")
+
+    CHAR_MAP = make(map[byte]int)
+    for i := 0; i < ALPHABET_SIZE; i++ {
+        CHAR_MAP[ALPHABET[i]] = i
+    }
+
+    CHAR_REVERSE_MAP = make(map[int32]string)
+    for i := 0; i < ALPHABET_SIZE; i++ {
+        for j := 0; j < ALPHABET_SIZE; j++ {
+            CHAR_REVERSE_MAP[int32((i * ALPHABET_SIZE) + j)] = ALPHABET[i:i+1] + ALPHABET[j:j+1]
+        }
+    }
 }
 
 
@@ -53,4 +86,9 @@ func MakeFeatureCalculationFunctions(selectedFeatureSetConfigs []FeatureSetConfi
     }
 
     return fromString, fromStringArray
+}
+
+
+func normalizeString(s string) string {
+    return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), " ")
 }

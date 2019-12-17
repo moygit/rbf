@@ -25,7 +25,7 @@ import (
     "sort"
     // "time"
 
-    "rbf/features"
+    rbf "rbf/features"
 
     // for logging only:
     "log"
@@ -36,7 +36,6 @@ import (
 const LOG_FILENAME = "train.log"
 
 var treeStatsFile *os.File
-var treeNum int
 var logger *log.Logger
 
 func init() {
@@ -224,7 +223,7 @@ func quickPartition(rowIndex []int32, features [][]byte, indexStart, indexEnd, f
 
 // Allocate space for the tree's component arrays and then
 // call the recursive `calculateOneNode` function, which does the real training.
-func TrainOneTree(features [][]byte) RandomBinaryTree {
+func trainOneTree(treeNum int, features [][]byte) RandomBinaryTree {
     rowIndex := make([]int32, len(features))
     for i := int32(0); i < int32(len(rowIndex)); i++ {
         rowIndex[i] = i
@@ -233,22 +232,23 @@ func TrainOneTree(features [][]byte) RandomBinaryTree {
     treeSecond := make([]int32, TREE_SIZE)
     var numInternalNodes int32
     var numLeaves int32
-    calculateOneNode(features, rowIndex, treeFirst, treeSecond, &numInternalNodes, &numLeaves, 0, int32(len(rowIndex)), 0, 0)
+    calculateOneNode(treeNum, features, rowIndex, treeFirst, treeSecond, &numInternalNodes, &numLeaves, 0, int32(len(rowIndex)), 0, 0)
     return RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
 }
 
 
 // Given an array of strings, convert it to an array of features and then train.
-func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
+func TrainForest(trainingStrings []string, featureSetConfigs []rbf.FeatureSetConfig) RandomBinaryForest {
     // get features:
-    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
+    calculateFeatures, calculateFeaturesForArray := rbf.MakeFeatureCalculationFunctions(featureSetConfigs)
     features := calculateFeaturesForArray(trainingStrings)
 
     // make and train trees:
     trees := make([]RandomBinaryTree, NUM_TREES)
     for i := 0; i < NUM_TREES; i++ {
-treeNum = i
-        trees[i] = TrainOneTree(features)
+        func() {
+            trees[i] = trainOneTree(i, features)
+        }()
     }
 treeStatsFile.Close()
     return RandomBinaryForest{trainingStrings, trees, featureSetConfigs, calculateFeatures, calculateFeaturesForArray}
@@ -280,7 +280,7 @@ treeStatsFile.Close()
 // - Parallel calls to `calculateOneNode` will look at non-intersecting views.
 // - Child calls will look at distinct sub-views of this view.
 // - No two calls to `calculateOneNode` will have the same treeArrayPos
-func calculateOneNode(features [][]byte, rowIndex, treeFirst, treeSecond []int32,
+func calculateOneNode(treeNum int, features [][]byte, rowIndex, treeFirst, treeSecond []int32,
                       numInternalNodes, numLeaves *int32,
                       indexStart, indexEnd int32, treeArrayPos int, depth int) {
     // logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
@@ -292,7 +292,7 @@ func calculateOneNode(features [][]byte, rowIndex, treeFirst, treeSecond []int32
         treeFirst[treeArrayPos], treeSecond[treeArrayPos] = HIGH_BIT_1 ^ indexStart, HIGH_BIT_1 ^ indexEnd
         // TODO: REMOVE THIS!
         *numLeaves += 1
-fmt.Fprintf(treeStatsFile, "%d,depth,%d,%d,%d\n", treeNum, indexStart, indexEnd, indexEnd-indexStart)
+fmt.Fprintf(treeStatsFile, "%d,%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
         return
     }
 
@@ -302,7 +302,7 @@ fmt.Fprintf(treeStatsFile, "%d,depth,%d,%d,%d\n", treeNum, indexStart, indexEnd,
         treeFirst[treeArrayPos], treeSecond[treeArrayPos] = HIGH_BIT_1 ^ indexStart, HIGH_BIT_1 ^ indexEnd
         // TODO: REMOVE THIS!
         *numLeaves += 1
-fmt.Fprintf(treeStatsFile, "%d,leaf-size,%d,%d,%d\n", treeNum, indexStart, indexEnd, indexEnd-indexStart)
+fmt.Fprintf(treeStatsFile, "%d,%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
     } else {
     // Not a leaf. Get a random subset of SQRT_NUM_FEATURES features, find the best one, and split this node.
     // TODO (not sure where): pick feature so that each side has at least a third of data, else don't bother splitting if below a threshold
@@ -319,9 +319,10 @@ fmt.Fprintf(treeStatsFile, "%d,leaf-size,%d,%d,%d\n", treeNum, indexStart, index
             logger.Printf("DEBUG: bad split; feature-num: %d, count: %d", bestFeatureNum, indexEnd-indexStart)
         }
         treeFirst[treeArrayPos], treeSecond[treeArrayPos] = bestFeatureNum, int32(bestFeatureSplitValue)
+fmt.Fprintf(treeStatsFile, "%d,%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, bestFeatureNum, bestFeatureSplitValue, rbf.CHAR_REVERSE_MAP[bestFeatureNum])
         // TODO: REMOVE THIS!
         *numInternalNodes += 1
-        calculateOneNode(features, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
-        calculateOneNode(features, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
+        calculateOneNode(treeNum, features, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
+        calculateOneNode(treeNum, features, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
 }

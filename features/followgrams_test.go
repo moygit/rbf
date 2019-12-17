@@ -16,8 +16,11 @@ func TestGetFollowgrams(t *testing.T) {
         return true
     }
 
-    // given/when:
-    followgrams := getFollowgramsWithWindowSize("abcdefgh", 3)
+    // given:
+    f := Followgrams{3}
+    // when:
+    followgrams := f.FromString("abcdefgh")
+    // then:
     if !sliceIsSingleValue(followgrams[1:4], byte(1)) ||        // a
        !sliceIsSingleValue(followgrams[39:42], byte(1)) ||      // b
        !sliceIsSingleValue(followgrams[77:80], byte(1)) ||      // c
@@ -40,8 +43,11 @@ func TestGetFollowgrams(t *testing.T) {
         t.Errorf("abcdefgh 3-followgrams are wrong :-(")
     }
 
-    // given/when:
-    followgrams = getFollowgramsWithWindowSize("aaaaaaaa", 6)
+    // given:
+    f = Followgrams{6}
+    // when:
+    followgrams = f.FromString("aaaaaaaa")
+    // then:
     if followgrams[0] != 27 {
         t.Errorf("aa count is %d; expected %d", followgrams[0], 27)
     }
