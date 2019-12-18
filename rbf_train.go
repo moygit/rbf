@@ -21,6 +21,7 @@ package rbf
 import (
     "fmt"
     "os"
+    "math"
     "math/rand"
     "sort"
     // "time"
@@ -154,7 +155,7 @@ type FeatureSplit struct {
 }
 
 // Find the best of the given features, i.e. the one that has a split close to the median and has the highest variance.
-// We only consider features that have a split between the 25th and 75th percentiles.
+// We only consider features that have a split between the 20th and 80th percentiles.
 //
 // Params:
 // - featureFrequencies is an array giving the frequency (for that feature) of each integer value in [0, 255].
@@ -195,6 +196,32 @@ func getBestFeature(featureFrequencies [][]int32, featureWeightedTotals []int32,
     sort.Slice(featureSplits[:count],
                func(pos1, pos2 int) bool {
                    return featureSplits[pos1].totalMoment > featureSplits[pos2].totalMoment
+               })
+    bestFeature := featureSplits[0]
+    return int32(bestFeature.featureNum), byte(bestFeature.splitValue)
+}
+
+
+type simpleFeatureSplit struct {
+    splitDiff   float32
+    splitValue  int32
+    leftCount   int32
+    featureNum  int
+}
+
+// From the given features find the one which splits closest to the median.
+func getSimpleBestFeature(featureFrequencies [][]int32, featureWeightedTotals []int32, totalCount int32) (int32, byte) {
+    featureSplits := make([]simpleFeatureSplit, len(featureFrequencies))
+
+    for i, freq := range featureFrequencies {
+        _, splitValue, leftCount := splitOneFeature(freq, featureWeightedTotals[i], totalCount)
+        splitDiff := math.Abs(float64(leftCount - (totalCount - leftCount)))    // leftCount - rightCount
+        featureSplits[i] = simpleFeatureSplit{float32(splitDiff), splitValue, leftCount, i}
+    }
+
+    sort.Slice(featureSplits,
+               func(pos1, pos2 int) bool {
+                   return featureSplits[pos1].splitDiff < featureSplits[pos2].splitDiff
                })
     bestFeature := featureSplits[0]
     return int32(bestFeature.featureNum), byte(bestFeature.splitValue)
@@ -309,7 +336,7 @@ fmt.Fprintf(treeStatsFile, "%d,%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", tree
     //      or look at more features or something
         // logger.Printf("DEBUG: splitting node")
         featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, indexStart, indexEnd)
-        bestFeatureIndex, bestFeatureSplitValue := getBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
+        bestFeatureIndex, bestFeatureSplitValue := getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
         bestFeatureNum := featureSubset[bestFeatureIndex]
         indexSplit := quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
         // logger.Printf("DEBUG: bestFeatureSplitValue: %d, bestFeatureNum: %d, indexSplit: %d\n", bestFeatureSplitValue, bestFeatureNum, indexSplit)
