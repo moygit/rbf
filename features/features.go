@@ -9,6 +9,10 @@ import (
 
 // Example use:
 // featureSetConfig := []FeatureSetConfig{ features.DefaultFollowgrams, features.DefaultOccurrenceCounts }
+//
+// Internally, we use a feature-set config to build a "featureSetRealized", which has the
+// feature-generating function from the feature-set config and also has the start and end
+// positions of this feature-set in a feature-array.
 
 
 type FeatureSetConfig interface {
