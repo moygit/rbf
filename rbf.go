@@ -7,7 +7,7 @@ import "rbf/features"
 const NUM_TREES = 20
 const TREE_SIZE = 1 << 25 // roughly 32M
 
-const LEAF_SIZE = 64
+const LEAF_SIZE = 8
 
 const NUM_BITS = 32 // we want to store some shorts but also some ints, so need 4 bytes
 const HIGH_BIT = 31 // low bit is 0, high bit is 31
