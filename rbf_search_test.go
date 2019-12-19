@@ -46,12 +46,25 @@ func makeTestForest() RandomBinaryForest {
 }
 
 
+func TestFindPoint(t *testing.T) {
+    // given:
+    forest := makeTestForest()
+    queryPoint := []byte{6, 0, 0, 0, 0, 0}  // initial slice of features for "aaaa"
+    // when:
+    queryResultIndices := forest.findPoint(queryPoint)
+    // then:
+    if len(queryResultIndices) != 1 || !queryResultIndices[0] {
+        t.Errorf("queryResultIndices == %v, expected %v", queryResultIndices, map[int32]bool{0: true})
+    }
+}
+
+
 func TestFindStringWithSimilarities(t *testing.T) {
     // given:
     queryString := "aaaa"
     forest := makeTestForest()
     // when:
-    queryResult, _, _ := forest.FindStringWithSimilarities(queryString)
+    queryResult, _ := forest.FindStringWithSimilarities(queryString)
     // then:
     if queryResult.Result != "aaa" {
         t.Errorf("queryResult.Result == %s, expected %s", queryResult.Result, TRAINING_ADDRS[0])

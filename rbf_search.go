@@ -63,21 +63,23 @@ func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
 // matching strings from the given list of training-strings, and get
 // each result string's distance from the input string.
 // Return the (upto) NUM_RESULTS_TO_RETURN best results.
-func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) (ResultSimilarityPair, int, int) {
-//func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) []ResultSimilarityPair {
-    queryPoint := forest.calculateFeatures(queryString)
-
-totalCount := 0
+func (forest RandomBinaryForest) findPoint(queryPoint []byte) map[int32]bool {
     // query each tree and get results (indices into forest.trainingStrings)
     resultIndices := make(map[int32]bool)
     for _, tree := range forest.Trees {
         treeResultIndices := tree.FindPoint(queryPoint)
         for _, index := range treeResultIndices {
             resultIndices[index] = true
-totalCount += 1
         }
     }
-distinctCount := len(resultIndices)
+    return resultIndices
+}
+
+func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) (ResultSimilarityPair, int) {
+//func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) []ResultSimilarityPair {
+    queryPoint := forest.calculateFeatures(queryString)
+
+    resultIndices := forest.findPoint(queryPoint)
 
     // get strings and similarities
     results := make([]ResultSimilarityPair, 0)
@@ -97,5 +99,5 @@ distinctCount := len(resultIndices)
         count = NUM_RESULTS_TO_RETURN
     }
     // return results[:count]
-return results[0], totalCount, distinctCount
+return results[0], len(resultIndices)
 }
