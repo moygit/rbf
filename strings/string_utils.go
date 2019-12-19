@@ -13,6 +13,42 @@ func init() {
 }
 
 
+func OneDirectionalJaccard2GramSimilarity(reference string, eval string) float64 {
+    // Note: these are ASCIIized strings, so we can iterate over bytes instead of runes.
+
+    allNGrams := make(map[int]bool)
+    getNGramDict := func (s string) map[int]int {
+        nGramDict := make(map[int]int)
+        for i := 0; i < len(s) - 1; i++ {
+            key := (CHAR_MAP[s[i]] * len(CHAR_MAP)) + CHAR_MAP[s[i+1]]  // treat each Ngram as a number
+            nGramDict[key] += 1
+            allNGrams[key] = true
+        }
+        return nGramDict
+    }
+
+    ngramReference := getNGramDict(reference)
+    ngramEval := getNGramDict(eval)
+
+    var intersection, union int
+    totalRef := 0
+    for key, _ := range allNGrams {
+        countRef := ngramReference[key]
+        totalRef += countRef
+        countEval := ngramEval[key]
+        if countRef > countEval {
+            intersection += countEval
+            union += countRef
+        } else {
+            intersection += countRef
+            union += countEval
+        }
+    }
+
+    return float64(intersection) / float64(totalRef)
+}
+
+
 func Jaccard2gramSimilarity(s1 string, s2 string) float64 {
     // Note: these are ASCIIized strings, so we can iterate over bytes instead of runes.
 
@@ -26,7 +62,7 @@ func Jaccard2gramSimilarity(s1 string, s2 string) float64 {
         }
         return nGramDict
     }
-    
+
     ngrams1 := getNGramDict(s1)
     ngrams2 := getNGramDict(s2)
 
@@ -62,7 +98,7 @@ func JaccardFollowgramSimilarity(s1 string, s2 string) float64 {
         }
         return followGramDict
     }
-    
+
     followgrams1 := getFollowGramDict(s1)
     followgrams2 := getFollowGramDict(s2)
 
