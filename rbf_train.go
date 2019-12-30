@@ -88,13 +88,13 @@ func getSingleFeatureFrequencies(rowIndex []int32, featureArray [][]byte, featur
 
 // Select a random subset of features and get the frequencies for those features.
 func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int32, indexStart, indexEnd int32) ([]int32, [][]int32, []int32) {
-    featureSubset := make([]int32, SQRT_NUM_FEATURES)
-    featureFrequencies := make([][]int32, SQRT_NUM_FEATURES)
-    featureWeightedTotals := make([]int32, SQRT_NUM_FEATURES)
+    featureSubset := make([]int32, NUM_FEATURES_TO_COMPARE)
+    featureFrequencies := make([][]int32, NUM_FEATURES_TO_COMPARE)
+    featureWeightedTotals := make([]int32, NUM_FEATURES_TO_COMPARE)
 
     var featureNum int32
     featuresAlreadySelected := make([]bool, NUM_FEATURES)
-    for i := 0; i < SQRT_NUM_FEATURES; i++ {
+    for i := 0; i < NUM_FEATURES_TO_COMPARE; i++ {
         // get one that isn't already selected:
         for featureNum = int32(rand.Intn(NUM_FEATURES)); featuresAlreadySelected[featureNum]; featureNum = int32(rand.Intn(NUM_FEATURES)) {
         }
@@ -331,7 +331,7 @@ fmt.Fprintf(treeStatsFile, "%d,%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", tre
         *numLeaves += 1
 fmt.Fprintf(treeStatsFile, "%d,%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
     } else {
-    // Not a leaf. Get a random subset of SQRT_NUM_FEATURES features, find the best one, and split this node.
+    // Not a leaf. Get a random subset of NUM_FEATURES_TO_COMPARE features, find the best one, and split this node.
     // TODO (not sure where): pick feature so that each side has at least a third of data, else don't bother splitting if below a threshold
     //      or look at more features or something
         // logger.Printf("DEBUG: splitting node")
