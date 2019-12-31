@@ -63,7 +63,7 @@ func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
 // matching strings from the given list of training-strings, and get
 // each result string's distance from the input string.
 // Return the (upto) NUM_RESULTS_TO_RETURN best results.
-func (forest RandomBinaryForest) findPoint(queryPoint []byte) map[int32]bool {
+func (forest RandomBinaryForest) FindPoint(queryPoint []byte) map[int32]bool {
     // query each tree and get results (indices into forest.TrainingStrings)    // TODO: make this private
     resultIndices := make(map[int32]bool)
     for _, tree := range forest.Trees {
@@ -77,9 +77,9 @@ func (forest RandomBinaryForest) findPoint(queryPoint []byte) map[int32]bool {
 
 func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) (ResultSimilarityPair, int) {
 //func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) []ResultSimilarityPair {
-    queryPoint := forest.calculateFeatures(queryString)
+    queryPoint := forest.CalculateFeatures(queryString)
 
-    resultIndices := forest.findPoint(queryPoint)
+    resultIndices := forest.FindPoint(queryPoint)
 
     // get strings and similarities
     results := make([]ResultSimilarityPair, 0)

@@ -265,12 +265,7 @@ func trainOneTree(treeNum int, featureArray [][]byte) RandomBinaryTree {
 }
 
 
-// Given an array of strings, convert it to an array of features and then train.
-func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
-    // get features:
-    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
-    featureArray := calculateFeaturesForArray(trainingStrings)
-
+func TrainForestWithFeatureArray(featureArray [][]byte) []RandomBinaryTree {
     // make and train trees:
     trees := make([]RandomBinaryTree, NUM_TREES)
     var wg sync.WaitGroup
@@ -283,6 +278,15 @@ func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureS
     }
     wg.Wait()
 treeStatsFile.Close()
+    return trees
+}
+
+// Given an array of strings, convert it to an array of features and then train.
+func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
+    // get features:
+    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
+    featureArray := calculateFeaturesForArray(trainingStrings)
+    trees := TrainForestWithFeatureArray(featureArray)
     return RandomBinaryForest{trainingStrings, trees, featureSetConfigs, calculateFeatures, calculateFeaturesForArray}
 }
 

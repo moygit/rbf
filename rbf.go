@@ -37,8 +37,8 @@ type RandomBinaryForest struct {
     // TODO: make this private
     Trees               []RandomBinaryTree
     FeatureSetConfigs   []features.FeatureSetConfig
-    calculateFeatures   func(string) []byte
-    calculateFeaturesForArray   func([]string) [][]byte
+    CalculateFeatures   func(string) []byte
+    CalculateFeaturesForArray   func([]string) [][]byte
 }
 
 
