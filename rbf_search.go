@@ -1,42 +1,5 @@
 package rbf
 
-import (
-    // "encoding/binary"
-    // "fmt"
-    // "io/ioutil"
-    // "os"
-    // "math/rand"
-    "sort"
-
-    "github.com/adrg/strutil"
-    "github.com/adrg/strutil/metrics"
-
-    // for logging only:
-    // "log"
-    // "os"
-)
-
-
-const NUM_RESULTS_TO_RETURN = 1
-const CONSIDER_SIMILARITY_THRESHOLD = 0.4
-var SIMILARITY_FUNC func(string, string) float64
-
-
-type ResultSimilarityPair struct {
-    // TODO: make these private
-    Result string
-    Similarity float64
-}
-
-
-func init() {
-    // SIMILARITY_FUNC = rbfstrings.Jaccard2gramSimilarity
-    lev := metrics.NewLevenshtein()
-    SIMILARITY_FUNC = func(s1, s2 string) float64 {
-            return strutil.Similarity(s1, s2, lev)
-        }
-}
-
 
 // A "point" is a feature-array. Search for one point in this tree.
 func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
@@ -59,10 +22,8 @@ func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
 }
 
 
-// Search for the given input string in the given forest. Then get
-// matching strings from the given list of training-strings, and get
-// each result string's distance from the input string.
-// Return the (upto) NUM_RESULTS_TO_RETURN best results.
+// A "point" is a feature-array. Search for one point in this forest.
+// Return indices into the training feature-array (which presumably comes from a feature-set).
 func (forest RandomBinaryForest) FindPoint(queryPoint []byte) map[int32]bool {
     // query each tree and get results (indices into forest.TrainingStrings)    // TODO: make this private
     resultIndices := make(map[int32]bool)
@@ -73,35 +34,4 @@ func (forest RandomBinaryForest) FindPoint(queryPoint []byte) map[int32]bool {
         }
     }
     return resultIndices
-}
-
-func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) (ResultSimilarityPair, int) {
-//func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) []ResultSimilarityPair {
-    queryPoint := forest.CalculateFeatures(queryString)
-
-    resultIndices := forest.FindPoint(queryPoint)
-
-    // get strings and similarities
-    results := make([]ResultSimilarityPair, 0)
-    for index := range resultIndices {
-        resultString := forest.TrainingStrings[index]   // TODO: make this private
-        resultSimilarity := SIMILARITY_FUNC(queryString, resultString)
-        newResult := ResultSimilarityPair{resultString, resultSimilarity}
-        if resultSimilarity == 1.0 {
-            return newResult, len(resultIndices)
-        }
-        // resultSimilarity := 0.0
-        // if resultSimilarity > CONSIDER_SIMILARITY_THRESHOLD {
-            results = append(results, newResult)
-        // }
-    }
-
-    // get the most similar results and return as many as we can, up to NUM_RESULTS_TO_RETURN
-    sort.Slice(results, func (i int, j int) bool { return results[i].Similarity > results[j].Similarity })
-    count := len(results)
-    if count > NUM_RESULTS_TO_RETURN {
-        count = NUM_RESULTS_TO_RETURN
-    }
-    // return results[:count]
-return results[0], len(resultIndices)
 }
