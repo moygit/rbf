@@ -3,23 +3,14 @@ package rbf
 
 import (
     "testing"
-
-    "rbf/features"
 )
-
-
-func makeTestForest() RandomBinaryForest {
-    addrs := []string{"aaa", "abc"}
-    trees := []RandomBinaryTree{MakeTestTree(), MakeTestTree()}
-    featureSetConfigs := []features.FeatureSetConfig{ features.DefaultFollowgrams }
-    return NewRBF(addrs, trees, featureSetConfigs)
-}
 
 
 func TestFindPoint(t *testing.T) {
     // given:
-    forest := makeTestForest()
-    queryPoint := []byte{6, 0, 0, 0, 0, 0}  // initial slice of features for "aaaa"
+    trees := []RandomBinaryTree{MakeTestTree(), MakeTestTree()}
+    forest := RandomBinaryForest{trees}
+    queryPoint := []byte{6, 0, 0, 0, 0, 0}  // initial slice of followgrams for "aaaa"
     // when:
     queryResultIndices := forest.FindPoint(queryPoint)
     // then:

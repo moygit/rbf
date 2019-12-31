@@ -281,16 +281,6 @@ treeStatsFile.Close()
     return trees
 }
 
-// Given an array of strings, convert it to an array of features and then train.
-func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureSetConfig) RandomBinaryForest {
-    // get features:
-    calculateFeatures, calculateFeaturesForArray := features.MakeFeatureCalculationFunctions(featureSetConfigs)
-    featureArray := calculateFeaturesForArray(trainingStrings)
-    trees := TrainForestWithFeatureArray(featureArray)
-    return RandomBinaryForest{trainingStrings, trees, featureSetConfigs, calculateFeatures, calculateFeaturesForArray}
-}
-
-
 
 //  // TODO: Fix this comment
 //  // TODO: I DON'T KNOW HOW TO EXTEND RIGHT NOW because we're not using List or array.array or
