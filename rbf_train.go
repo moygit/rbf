@@ -95,9 +95,9 @@ func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int
 
     var featureNum int32
     featuresAlreadySelected := make([]bool, NUM_FEATURES)
-    for i := 0; i < NUM_FEATURES_TO_COMPARE; i++ {
+    for i := int32(0); i < NUM_FEATURES_TO_COMPARE; i++ {
         // get one that isn't already selected:
-        for featureNum = int32(rand.Intn(NUM_FEATURES)); featuresAlreadySelected[featureNum]; featureNum = int32(rand.Intn(NUM_FEATURES)) {
+        for featureNum = rand.Int31n(NUM_FEATURES); featuresAlreadySelected[featureNum]; featureNum = rand.Int31n(NUM_FEATURES) {
         }
         featuresAlreadySelected[featureNum] = true
         featureSubset[i] = featureNum
@@ -334,21 +334,27 @@ fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArr
     // TODO (not sure where): pick feature so that each side has at least a third of data, else don't bother splitting if below a threshold
     //      or look at more features or something
         // logger.Printf("DEBUG: splitting node")
-        featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, tree.rowIndex, indexStart, indexEnd)
-        bestFeatureIndex, bestFeatureSplitValue := getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
-        bestFeatureNum := featureSubset[bestFeatureIndex]
-        indexSplit := quickPartition(tree.rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
+        featureNum, featureSplitValue, indexSplit := splitNode(featureArray, tree.rowIndex, indexStart, indexEnd)
         // logger.Printf("DEBUG: bestFeatureSplitValue: %d, bestFeatureNum: %d, indexSplit: %d\n", bestFeatureSplitValue, bestFeatureNum, indexSplit)
 
         if indexSplit == indexStart || indexSplit == indexEnd {
         // BUG TODO: the first set of features gave us a crappy split. What do we do?
-            logger.Printf("DEBUG: bad split; feature-num: %d, count: %d", bestFeatureNum, indexEnd-indexStart)
+            logger.Printf("DEBUG: bad split; feature-num: %d, count: %d", featureNum, indexEnd-indexStart)
         }
-        tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = bestFeatureNum, int32(bestFeatureSplitValue)
-fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, bestFeatureNum, bestFeatureSplitValue, features.CHAR_REVERSE_MAP[bestFeatureNum])
+        tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = featureNum, int32(featureSplitValue)
+fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, featureNum, featureSplitValue, features.CHAR_REVERSE_MAP[featureNum])
         // TODO: REMOVE THIS!
         tree.numInternalNodes += 1
         calculateOneNode(featureArray, tree, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
         calculateOneNode(featureArray, tree, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
+}
+
+
+func splitNode(featureArray [][]byte, rowIndex []int32, indexStart, indexEnd int32) (int32, byte, int32) {
+    featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, indexStart, indexEnd)
+    bestFeatureIndex, bestFeatureSplitValue := getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
+    bestFeatureNum := featureSubset[bestFeatureIndex]
+    indexSplit := quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
+    return bestFeatureNum, bestFeatureSplitValue, indexSplit
 }
