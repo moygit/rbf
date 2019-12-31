@@ -57,12 +57,12 @@ func ReadForestFromFile(filename string) RandomBinaryForest {
     // TODO: handle errors
     reader, _ := os.Open(filename)
     defer reader.Close()
-    return readForestFromReader(reader)
+    return ReadForestFromReader(reader)
 }
 
 
 // TODO: error-handling
-func readForestFromReader(reader io.Reader) RandomBinaryForest {
+func ReadForestFromReader(reader io.Reader) RandomBinaryForest {
     // read numTrees first, then read that many trees
     readTrees := func() []RandomBinaryTree {
         var numTrees int32
@@ -129,7 +129,7 @@ func readForestFromReader(reader io.Reader) RandomBinaryForest {
 }
 
 
-func (forest RandomBinaryForest) writeToWriter(writer io.Writer) {
+func (forest RandomBinaryForest) WriteToWriter(writer io.Writer) {
     // write trees
     writeTrees := func() {
         binary.Write(writer, binary.LittleEndian, int32(len(forest.Trees)))
@@ -157,9 +157,9 @@ func (forest RandomBinaryForest) writeToWriter(writer io.Writer) {
     // TODO: MOVE TO WRAPPER
     // write training strings
     writeStrings := func() {
-        binary.Write(writer, binary.LittleEndian, int32(len(forest.trainingStrings)))
+        binary.Write(writer, binary.LittleEndian, int32(len(forest.TrainingStrings)))   // TODO: make this private
         bufWriter := bufio.NewWriter(writer)
-        for _, s := range forest.trainingStrings {
+        for _, s := range forest.TrainingStrings {   // TODO: make this private
             fmt.Fprintf(writer, "%s\n", s)
         }
         bufWriter.Flush()
@@ -175,5 +175,5 @@ func (forest RandomBinaryForest) WriteToFile(filename string) {
     // TODO: handle errors
     writer, _ := os.Create(filename)
     defer writer.Close()
-    forest.writeToWriter(writer)
+    forest.WriteToWriter(writer)
 }

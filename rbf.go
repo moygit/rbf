@@ -33,7 +33,7 @@ type RandomBinaryTree struct {
 
 
 type RandomBinaryForest struct {
-    trainingStrings     []string
+    TrainingStrings     []string
     // TODO: make this private
     Trees               []RandomBinaryTree
     FeatureSetConfigs   []features.FeatureSetConfig
