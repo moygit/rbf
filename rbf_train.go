@@ -251,7 +251,7 @@ func quickPartition(rowIndex []int32, featureArray [][]byte, indexStart, indexEn
 
 // Allocate space for the tree's component arrays and then
 // call the recursive `calculateOneNode` function, which does the real training.
-func trainOneTree(treeNum int, featureArray [][]byte) RandomBinaryTree {
+func trainOneTree(featureArray [][]byte) RandomBinaryTree {
     rowIndex := make([]int32, len(featureArray))
     for i := int32(0); i < int32(len(rowIndex)); i++ {
         rowIndex[i] = i
@@ -260,8 +260,9 @@ func trainOneTree(treeNum int, featureArray [][]byte) RandomBinaryTree {
     treeSecond := make([]int32, TREE_SIZE)
     var numInternalNodes int32
     var numLeaves int32
-    calculateOneNode(treeNum, featureArray, rowIndex, treeFirst, treeSecond, &numInternalNodes, &numLeaves, 0, int32(len(rowIndex)), 0, 0)
-    return RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
+    rbt := RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
+    calculateOneNode(featureArray, &rbt, 0, int32(len(rowIndex)), 0, 0)
+    return rbt
 }
 
 
@@ -273,7 +274,7 @@ func TrainForestWithFeatureArray(featureArray [][]byte) []RandomBinaryTree {
         wg.Add(1)
         go func(j int) {
             defer wg.Done()
-            trees[j] = trainOneTree(j, featureArray)
+            trees[j] = trainOneTree(featureArray)
         }(i)
     }
     wg.Wait()
@@ -306,49 +307,48 @@ treeStatsFile.Close()
 // - Parallel calls to `calculateOneNode` will look at non-intersecting views.
 // - Child calls will look at distinct sub-views of this view.
 // - No two calls to `calculateOneNode` will have the same treeArrayPos
-func calculateOneNode(treeNum int, featureArray [][]byte, rowIndex, treeFirst, treeSecond []int32,
-                      numInternalNodes, numLeaves *int32,
+func calculateOneNode(featureArray [][]byte, tree *RandomBinaryTree,
                       indexStart, indexEnd int32, treeArrayPos int, depth int) {
     // logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
-    if 2*treeArrayPos+2 >= len(treeFirst) {
+    if 2*treeArrayPos+2 >= len(tree.treeFirst) {
     // Special termination condition to regulate depth.
         // logger.Printf("DEBUG:  depth check triggered, 2 * treeArrayPos + 1 >= len(treeFirst): 2 * %d + 1 >= %d\n", treeArrayPos, len(treeFirst))
         // logger.Printf("WARNING: reached max depth: 2 * treeArrayPos >= len(treeFirst) with indexStart and indexEnd: "+
             // "2 * %d >= %d with %d and %d\n", treeArrayPos, len(treeFirst), indexStart, indexEnd)
-        treeFirst[treeArrayPos], treeSecond[treeArrayPos] = HIGH_BIT_1 ^ indexStart, HIGH_BIT_1 ^ indexEnd
+        tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = HIGH_BIT_1 ^ indexStart, HIGH_BIT_1 ^ indexEnd
         // TODO: REMOVE THIS!
-        *numLeaves += 1
-fmt.Fprintf(treeStatsFile, "%d,%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
+        tree.numLeaves += 1
+fmt.Fprintf(treeStatsFile, "%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
         return
     }
 
     if indexEnd-indexStart < LEAF_SIZE {
     // Not enough items left to split. Make a leaf.
         // logger.Printf("DEBUG: making leaf")
-        treeFirst[treeArrayPos], treeSecond[treeArrayPos] = HIGH_BIT_1 ^ indexStart, HIGH_BIT_1 ^ indexEnd
+        tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = HIGH_BIT_1 ^ indexStart, HIGH_BIT_1 ^ indexEnd
         // TODO: REMOVE THIS!
-        *numLeaves += 1
-fmt.Fprintf(treeStatsFile, "%d,%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
+        tree.numLeaves += 1
+fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
     } else {
     // Not a leaf. Get a random subset of NUM_FEATURES_TO_COMPARE features, find the best one, and split this node.
     // TODO (not sure where): pick feature so that each side has at least a third of data, else don't bother splitting if below a threshold
     //      or look at more features or something
         // logger.Printf("DEBUG: splitting node")
-        featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, indexStart, indexEnd)
+        featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, tree.rowIndex, indexStart, indexEnd)
         bestFeatureIndex, bestFeatureSplitValue := getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
         bestFeatureNum := featureSubset[bestFeatureIndex]
-        indexSplit := quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
+        indexSplit := quickPartition(tree.rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
         // logger.Printf("DEBUG: bestFeatureSplitValue: %d, bestFeatureNum: %d, indexSplit: %d\n", bestFeatureSplitValue, bestFeatureNum, indexSplit)
 
         if indexSplit == indexStart || indexSplit == indexEnd {
         // BUG TODO: the first set of features gave us a crappy split. What do we do?
             logger.Printf("DEBUG: bad split; feature-num: %d, count: %d", bestFeatureNum, indexEnd-indexStart)
         }
-        treeFirst[treeArrayPos], treeSecond[treeArrayPos] = bestFeatureNum, int32(bestFeatureSplitValue)
-fmt.Fprintf(treeStatsFile, "%d,%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeNum, treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, bestFeatureNum, bestFeatureSplitValue, features.CHAR_REVERSE_MAP[bestFeatureNum])
+        tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = bestFeatureNum, int32(bestFeatureSplitValue)
+fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, bestFeatureNum, bestFeatureSplitValue, features.CHAR_REVERSE_MAP[bestFeatureNum])
         // TODO: REMOVE THIS!
-        *numInternalNodes += 1
-        calculateOneNode(treeNum, featureArray, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
-        calculateOneNode(treeNum, featureArray, rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
+        tree.numInternalNodes += 1
+        calculateOneNode(featureArray, tree, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
+        calculateOneNode(featureArray, tree, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
 }
