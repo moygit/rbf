@@ -15,7 +15,7 @@ const HIGH_BIT_1 = int32(-1) << HIGH_BIT
 
 const NUM_FEATURES = 37 * 37
 const MAX_FEATURE = NUM_FEATURES - 1
-const NUM_FEATURES_TO_COMPARE = 3 * 37
+const NUM_FEATURES_TO_COMPARE = 37
 
 const MAX_FEATURE_VALUE = 255 // openaddresses data has max followgram count ~200
 

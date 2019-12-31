@@ -86,9 +86,13 @@ func (forest RandomBinaryForest) FindStringWithSimilarities(queryString string) 
     for index := range resultIndices {
         resultString := forest.trainingStrings[index]
         resultSimilarity := SIMILARITY_FUNC(queryString, resultString)
+        newResult := ResultSimilarityPair{resultString, resultSimilarity}
+        if resultSimilarity == 1.0 {
+            return newResult, len(resultIndices)
+        }
         // resultSimilarity := 0.0
         // if resultSimilarity > CONSIDER_SIMILARITY_THRESHOLD {
-            results = append(results, ResultSimilarityPair{resultString, resultSimilarity})
+            results = append(results, newResult)
         // }
     }
 
