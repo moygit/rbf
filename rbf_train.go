@@ -24,6 +24,7 @@ import (
     "math"
     "math/rand"
     "sort"
+    "sync"
     // "time"
 
     features "rbf/features"
@@ -272,11 +273,15 @@ func TrainForest(trainingStrings []string, featureSetConfigs []features.FeatureS
 
     // make and train trees:
     trees := make([]RandomBinaryTree, NUM_TREES)
+    var wg sync.WaitGroup
     for i := 0; i < NUM_TREES; i++ {
-        func() {
-            trees[i] = trainOneTree(i, featureArray)
-        }()
+        wg.Add(1)
+        go func(j int) {
+            defer wg.Done()
+            trees[j] = trainOneTree(j, featureArray)
+        }(i)
     }
+    wg.Wait()
 treeStatsFile.Close()
     return RandomBinaryForest{trainingStrings, trees, featureSetConfigs, calculateFeatures, calculateFeaturesForArray}
 }
