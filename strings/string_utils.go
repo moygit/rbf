@@ -1,8 +1,15 @@
 package strings
 
 
+import (
+    "regexp"
+    "strings"
+)
+
+
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789 "
 var CHAR_MAP map[byte]int
+var NON_ALNUM_PATTERN *regexp.Regexp
 
 
 func init() {
@@ -10,6 +17,13 @@ func init() {
     for i := 0; i < len(ALPHABET); i++ {
         CHAR_MAP[ALPHABET[i]] = i
     }
+
+    NON_ALNUM_PATTERN = regexp.MustCompile("[^a-z0-9]+")
+}
+
+
+func LowercaseAndRemoveSpecialChars(s string) string {
+    return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), " ")
 }
 
 
