@@ -10,7 +10,7 @@ func TestGetFirstNumber(t *testing.T) {
     expectedNums := []byte{123, 234, 0, 345 % 256}
     // when/then:
     for i := 0; i < 4; i++ {
-        n := getFirstNumber(strs[i])
+        n := GetFirstNumber(strs[i])
         if n != expectedNums[i] {
             t.Errorf("bad first-num %d for string %s, expected %d\n", n, strs[i], expectedNums[i])
         }

@@ -10,7 +10,7 @@ func TestGetLastNumber(t *testing.T) {
     expectedNums := []byte{789 % 256, 678 % 256, 0, 123}
     // when/then:
     for i := 0; i < 4; i++ {
-        n := getLastNumber(strs[i])
+        n := GetLastNumber(strs[i])
         if n != expectedNums[i] {
             t.Errorf("bad last-num %d for string %s, expected %d\n", n, strs[i], expectedNums[i])
         }
