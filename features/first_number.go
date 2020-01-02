@@ -21,14 +21,14 @@ func (fn FirstNumber) Size() int32 {
 }
 
 func (fn FirstNumber) FromStringInPlace(input string, featureArray []byte) {
-    firstNum := getFirstNumber(input)
+    firstNum := GetFirstNumber(input)
     for i := byte(0); i < fn.Count; i++ {
         featureArray[i] = firstNum
     }
 }
 //----------------------------------------------------------------------------------------------------
 
-func getFirstNumber(input string) byte {
+func GetFirstNumber(input string) byte {
     num := 0
     inNum := false
     for _, ch := range input {
@@ -50,6 +50,6 @@ func getFirstNumber(input string) byte {
 }
 
 func init() {
-    gob.Register(OccurrenceCounts{})
-    DefaultFirstNumber = FirstNumber{10}
+    gob.Register(FirstNumber{})
+    DefaultFirstNumber = FirstNumber{20}
 }

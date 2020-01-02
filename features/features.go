@@ -96,3 +96,13 @@ func MakeFeatureCalculationFunctions(selectedFeatureSetConfigs []FeatureSetConfi
 func normalizeString(s string) string {
     return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), " ")
 }
+
+
+func testSliceIsSingleValue(slice []byte, val byte) bool {
+    for _, sliceVal := range slice {
+        if sliceVal != val {
+            return false
+        }
+    }
+    return true
+}

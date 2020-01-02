@@ -10,9 +10,9 @@ const NUM_BITS = 32 // we want to store some shorts but also some ints, so need 
 const HIGH_BIT = 31 // low bit is 0, high bit is 31
 const HIGH_BIT_1 = int32(-1) << HIGH_BIT
 
-const NUM_FEATURES = int32(37 * 37)
+const NUM_FEATURES = int32(37 * 37 + 40)
 const MAX_FEATURE = int32(NUM_FEATURES - 1)
-const NUM_FEATURES_TO_COMPARE = int32(37)
+const NUM_FEATURES_TO_COMPARE = int32(40)
 
 const MAX_FEATURE_VALUE = 255 // openaddresses data has max followgram count ~200
 

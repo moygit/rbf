@@ -19,7 +19,7 @@ func TestGetOccurrenceCounts(t *testing.T) {
     blankCounts, abcdefghCounts := occurrenceCounts[0], occurrenceCounts[1]
 
     // then:
-    if !sliceIsSingleValue(blankCounts, byte(255)) {
+    if !testSliceIsSingleValue(blankCounts, byte(255)) {
         t.Errorf("got non-255 count for some occurrence count for empty string")
     }
 
@@ -27,7 +27,7 @@ func TestGetOccurrenceCounts(t *testing.T) {
         t.Errorf("got incorrect count for some non-infinite occurrence count for string abcdefgh")
     }
 
-    if !sliceIsSingleValue(abcdefghCounts[8:], byte(255)) {
+    if !testSliceIsSingleValue(abcdefghCounts[8:], byte(255)) {
         t.Errorf("got non-255 count for some occurrence count past h for string abcdefgh")
     }
 }
@@ -48,9 +48,9 @@ func TestGetLongOccurrenceCounts(t *testing.T) {
         t.Errorf("got invalid occurrence count for letters in string (a**400)+bb")
     }
 
-    if !sliceIsSingleValue(occurrenceCounts[0 * ALPHABET_SIZE + 1:1 * ALPHABET_SIZE], byte(255)) ||
-       !sliceIsSingleValue(occurrenceCounts[1 * ALPHABET_SIZE + 1:2 * ALPHABET_SIZE], byte(255)) ||
-       !sliceIsSingleValue(occurrenceCounts[2 * ALPHABET_SIZE + 1:3 * ALPHABET_SIZE], byte(255)) {
+    if !testSliceIsSingleValue(occurrenceCounts[0 * ALPHABET_SIZE + 1:1 * ALPHABET_SIZE], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[1 * ALPHABET_SIZE + 1:2 * ALPHABET_SIZE], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[2 * ALPHABET_SIZE + 1:3 * ALPHABET_SIZE], byte(255)) {
         t.Errorf("got non-infinite occurrence count for some letter not in string (a**400)+bb")
     }
 }
@@ -66,7 +66,7 @@ func TestBackwardOccurrenceCounts(t *testing.T) {
     blankCounts, abcdefghCounts := occurrenceCounts[0], occurrenceCounts[1]
 
     // then:
-    if !sliceIsSingleValue(blankCounts, byte(255)) {
+    if !testSliceIsSingleValue(blankCounts, byte(255)) {
         t.Errorf("got non-255 count for some backward occurrence count for empty string")
     }
 
@@ -74,7 +74,7 @@ func TestBackwardOccurrenceCounts(t *testing.T) {
         t.Errorf("got incorrect count for some non-infinite backward occurrence count for string abcdefgh")
     }
 
-    if !sliceIsSingleValue(abcdefghCounts[8:], byte(255)) {
+    if !testSliceIsSingleValue(abcdefghCounts[8:], byte(255)) {
         t.Errorf("got non-255 count for some backward occurrence count past h for string abcdefgh")
     }
 }
@@ -99,19 +99,9 @@ func TestGetBackwardLongOccurrenceCounts(t *testing.T) {
         t.Errorf("got invalid backward occurrence count for letters in string (a**400)+bb")
     }
 
-    if !sliceIsSingleValue(occurrenceCounts[0 * ALPHABET_SIZE + 2:1 * ALPHABET_SIZE], byte(255)) ||
-       !sliceIsSingleValue(occurrenceCounts[1 * ALPHABET_SIZE + 2:2 * ALPHABET_SIZE], byte(255)) ||
-       !sliceIsSingleValue(occurrenceCounts[2 * ALPHABET_SIZE + 1:3 * ALPHABET_SIZE], byte(255)) {
+    if !testSliceIsSingleValue(occurrenceCounts[0 * ALPHABET_SIZE + 2:1 * ALPHABET_SIZE], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[1 * ALPHABET_SIZE + 2:2 * ALPHABET_SIZE], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[2 * ALPHABET_SIZE + 1:3 * ALPHABET_SIZE], byte(255)) {
         t.Errorf("got non-infinite backward occurrence count for some letter not in string (a**400)+bb")
     }
-}
-
-
-func sliceIsSingleValue(slice []byte, val byte) bool {
-    for _, sliceVal := range slice {
-        if sliceVal != val {
-            return false
-        }
-    }
-    return true
 }

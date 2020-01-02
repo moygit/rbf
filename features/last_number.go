@@ -21,14 +21,14 @@ func (fn LastNumber) Size() int32 {
 }
 
 func (fn LastNumber) FromStringInPlace(input string, featureArray []byte) {
-    lastNum := getLastNumber(input)
+    lastNum := GetLastNumber(input)
     for i := byte(0); i < fn.Count; i++ {
         featureArray[i] = lastNum
     }
 }
 //----------------------------------------------------------------------------------------------------
 
-func getLastNumber(input string) byte {
+func GetLastNumber(input string) byte {
     num := 0
     numPower10 := 0
     for i := len(input) - 1; i >= 0; i-- {
@@ -52,7 +52,6 @@ func getLastNumber(input string) byte {
 }
 
 func init() {
-    gob.Register(OccurrenceCounts{})
-    DefaultLastNumber = LastNumber{10}
+    gob.Register(LastNumber{})
+    DefaultLastNumber = LastNumber{20}
 }
-
