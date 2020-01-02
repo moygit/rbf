@@ -88,16 +88,16 @@ func getSingleFeatureFrequencies(rowIndex []int32, featureArray [][]byte, featur
 
 
 // Select a random subset of features and get the frequencies for those features.
-func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int32, indexStart, indexEnd int32) ([]int32, [][]int32, []int32) {
-    featureSubset := make([]int32, NUM_FEATURES_TO_COMPARE)
-    featureFrequencies := make([][]int32, NUM_FEATURES_TO_COMPARE)
-    featureWeightedTotals := make([]int32, NUM_FEATURES_TO_COMPARE)
+func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int32, numFeatures, numFeaturesToCompare, indexStart, indexEnd int32) ([]int32, [][]int32, []int32) {
+    featureSubset := make([]int32, numFeaturesToCompare)
+    featureFrequencies := make([][]int32, numFeaturesToCompare)
+    featureWeightedTotals := make([]int32, numFeaturesToCompare)
 
     var featureNum int32
-    featuresAlreadySelected := make([]bool, NUM_FEATURES)
-    for i := int32(0); i < NUM_FEATURES_TO_COMPARE; i++ {
+    featuresAlreadySelected := make([]bool, numFeatures)
+    for i := int32(0); i < numFeaturesToCompare; i++ {
         // get one that isn't already selected:
-        for featureNum = rand.Int31n(NUM_FEATURES); featuresAlreadySelected[featureNum]; featureNum = rand.Int31n(NUM_FEATURES) {
+        for featureNum = rand.Int31n(numFeatures); featuresAlreadySelected[featureNum]; featureNum = rand.Int31n(numFeatures) {
         }
         featuresAlreadySelected[featureNum] = true
         featureSubset[i] = featureNum
@@ -251,7 +251,7 @@ func quickPartition(rowIndex []int32, featureArray [][]byte, indexStart, indexEn
 
 // Allocate space for the tree's component arrays and then
 // call the recursive `calculateOneNode` function, which does the real training.
-func trainOneTree(featureArray [][]byte) RandomBinaryTree {
+func trainOneTree(featureArray [][]byte, numFeatures, numFeaturesToCompare int32) RandomBinaryTree {
     rowIndex := make([]int32, len(featureArray))
     for i := int32(0); i < int32(len(rowIndex)); i++ {
         rowIndex[i] = i
@@ -261,12 +261,13 @@ func trainOneTree(featureArray [][]byte) RandomBinaryTree {
     var numInternalNodes int32
     var numLeaves int32
     rbt := RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
-    calculateOneNode(featureArray, &rbt, 0, int32(len(rowIndex)), 0, 0)
+    calculateOneNode(featureArray, &rbt, numFeatures, numFeaturesToCompare, 0, int32(len(rowIndex)), 0, 0)
     return rbt
 }
 
 
-func TrainForestWithFeatureArray(featureArray [][]byte) []RandomBinaryTree {
+func TrainForestWithFeatureArray(featureArray [][]byte, numFeaturesToCompare int32) []RandomBinaryTree {
+    numFeatures := int32(len(featureArray[0]))
     // make and train trees:
     trees := make([]RandomBinaryTree, NUM_TREES)
     var wg sync.WaitGroup
@@ -274,7 +275,7 @@ func TrainForestWithFeatureArray(featureArray [][]byte) []RandomBinaryTree {
         wg.Add(1)
         go func(j int) {
             defer wg.Done()
-            trees[j] = trainOneTree(featureArray)
+            trees[j] = trainOneTree(featureArray, numFeatures, numFeaturesToCompare)
         }(i)
     }
     wg.Wait()
@@ -308,6 +309,7 @@ treeStatsFile.Close()
 // - Child calls will look at distinct sub-views of this view.
 // - No two calls to `calculateOneNode` will have the same treeArrayPos
 func calculateOneNode(featureArray [][]byte, tree *RandomBinaryTree,
+                      numFeatures, numFeaturesToCompare,
                       indexStart, indexEnd int32, treeArrayPos int, depth int) {
     // logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
     if 2*treeArrayPos+2 >= len(tree.treeFirst) {
@@ -330,11 +332,11 @@ fmt.Fprintf(treeStatsFile, "%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeAr
         tree.numLeaves += 1
 fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
     } else {
-    // Not a leaf. Get a random subset of NUM_FEATURES_TO_COMPARE features, find the best one, and split this node.
+    // Not a leaf. Get a random subset of numFeaturesToCompare features, find the best one, and split this node.
     // TODO (not sure where): pick feature so that each side has at least a third of data, else don't bother splitting if below a threshold
     //      or look at more features or something
         // logger.Printf("DEBUG: splitting node")
-        featureNum, featureSplitValue, indexSplit := splitNode(featureArray, tree.rowIndex, indexStart, indexEnd)
+        featureNum, featureSplitValue, indexSplit := splitNode(featureArray, tree.rowIndex, numFeatures, numFeaturesToCompare, indexStart, indexEnd)
         // logger.Printf("DEBUG: bestFeatureSplitValue: %d, bestFeatureNum: %d, indexSplit: %d\n", bestFeatureSplitValue, bestFeatureNum, indexSplit)
 
         if indexSplit == indexStart || indexSplit == indexEnd {
@@ -345,14 +347,14 @@ fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArr
 fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, featureNum, featureSplitValue, features.CHAR_REVERSE_MAP[featureNum])
         // TODO: REMOVE THIS!
         tree.numInternalNodes += 1
-        calculateOneNode(featureArray, tree, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
-        calculateOneNode(featureArray, tree, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
+        calculateOneNode(featureArray, tree, numFeatures, numFeaturesToCompare, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
+        calculateOneNode(featureArray, tree, numFeatures, numFeaturesToCompare, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
 }
 
 
-func splitNode(featureArray [][]byte, rowIndex []int32, indexStart, indexEnd int32) (int32, byte, int32) {
-    featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, indexStart, indexEnd)
+func splitNode(featureArray [][]byte, rowIndex []int32, numFeatures, numFeaturesToCompare, indexStart, indexEnd int32) (int32, byte, int32) {
+    featureSubset, featureFrequencies, featureWeightedTotals := selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, numFeatures, numFeaturesToCompare, indexStart, indexEnd)
     bestFeatureIndex, bestFeatureSplitValue := getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
     bestFeatureNum := featureSubset[bestFeatureIndex]
     indexSplit := quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
