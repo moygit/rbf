@@ -28,7 +28,9 @@ func (fn LastNumber) FromStringInPlace(input string, featureArray []byte) {
 }
 //----------------------------------------------------------------------------------------------------
 
+// Write this from scratch instead of using regular expressions. Much faster.
 func GetLastNumber(input string) byte {
+    lastCh := byte('-')     // last char before we see the tail of the number
     num := 0
     numPower10 := 0
     for i := len(input) - 1; i >= 0; i-- {
@@ -38,13 +40,19 @@ func GetLastNumber(input string) byte {
                 num = (int(ch - '0') * numPower10) + num
                 numPower10 = numPower10 * 10
             } else {
-                num = int(ch - '0')
-                numPower10 = 10
+                if lastCh < 'a' || lastCh > 'z' {
+                    // ok, this is the first (from right) numeric char, and the last char wasn't
+                    // alphabetic, so we're now legitimately inside a number
+                    num = int(ch - '0')
+                    numPower10 = 10
+                }
             }
         } else {
             if numPower10 > 0 {
                 // we were inside the number but just fell out, so we're done
                 return byte(num % 256)
+            } else {
+                lastCh = ch
             }
         }
     }

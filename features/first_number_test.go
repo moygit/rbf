@@ -6,8 +6,8 @@ import "testing"
 
 func TestGetFirstNumber(t *testing.T) {
     // given:
-    strs := []string{"123 main st 789", "abcd 234 main st 789", "main st", "main st 345"}
-    expectedNums := []byte{123, 234, 0, 345 % 256}
+    strs := []string{"123 main st 789", "1st st 456 789", "abcd 234 main st 789", "main st", "main st 345"}
+    expectedNums := []byte{123, 456 % 256, 234, 0, 345 % 256}
     // when/then:
     for i := 0; i < 4; i++ {
         n := GetFirstNumber(strs[i])

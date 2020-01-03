@@ -28,6 +28,7 @@ func (fn FirstNumber) FromStringInPlace(input string, featureArray []byte) {
 }
 //----------------------------------------------------------------------------------------------------
 
+// Write this from scratch instead of using regular expressions. Much faster.
 func GetFirstNumber(input string) byte {
     num := 0
     inNum := false
@@ -41,8 +42,14 @@ func GetFirstNumber(input string) byte {
             }
         } else {
             if inNum {
-                // we were inside the number but just fell out, so we're done
-                return byte(num % 256)
+                if ch >= 'a' && ch <= 'z' {
+                    // Heuristic: this wasn't an actual number, more like "1st" or "3A"
+                    num = 0
+                    inNum = false
+                } else {
+                    // we were inside the number but just fell out, so we're done
+                    return byte(num % 256)
+                }
             }
         }
     }
