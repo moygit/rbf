@@ -27,7 +27,7 @@ import (
     "sync"
     // "time"
 
-    features "rbf/features"
+    features "github.com/moygit/rbf/features"
 
     // for logging only:
     "log"
