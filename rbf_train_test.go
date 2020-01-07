@@ -9,6 +9,21 @@ import (
 )
 
 
+var result int32
+func BenchmarkGetSingleFeatureFrequencies(b *testing.B) {
+    // run the integrate function b.N times
+    for n := 0; n < b.N; n++ {
+        localFeatureArray := [][]byte{{0}, {0}, {5}, {5}, {5}, {5}, {7}, {7}, {7}, {7}}
+        localRowIndex := []int32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+        featureNum := int32(0)
+        indexStart := int32(0)
+        indexEnd := int32(10)
+        freqs, weightedTotal := getSingleFeatureFrequencies(localRowIndex, localFeatureArray, featureNum, indexStart, indexEnd)
+
+        result += weightedTotal + freqs[0]
+    }
+}
+
 func TestGetSingleFeatureFrequencies(t *testing.T) {
     // given
     localFeatureArray := [][]byte{{0}, {0}, {5}, {5}, {5}, {5}, {7}, {7}, {7}, {7}}
@@ -67,6 +82,23 @@ func TestGetBestFeature(t *testing.T) {
     // when:
     bestFeatureNum, splitValue := getBestFeature(featureFrequencies, weightedTotals, totalCount)
     // then f0 is "better" than f1 because its variance is higher
+    expBestFeature, expSplitValue := int32(0), byte(2)
+    if (bestFeatureNum != expBestFeature) || (splitValue != expSplitValue) {
+        t.Errorf("(bestFeatureNum, splitValue) == (%d, %d); expected (%d, %d)\n",
+                 bestFeatureNum, splitValue, expBestFeature, expSplitValue)
+    }
+}
+
+
+func TestGetSimpleBestFeature(t *testing.T) {
+    // given:
+    featureFrequencies := [][]int32{{1, 1, 1, 1, 1}, {5, 0, 0, 0, 0}}
+    weightedTotals := []int32{10, 0}      // 10 == (1 * 0) + (1 * 1) + (1 * 2) + (1 * 3) + (1 * 4) + (1 * 5)
+                                          //  0 == (5 * 0) + (0 * 1) + ... + (0 * 4)
+    totalCount := int32(5)
+    // when:
+    bestFeatureNum, splitValue := getSimpleBestFeature(featureFrequencies, weightedTotals, totalCount)
+    // then f0 is "better" than f1 because its split is closer to the median
     expBestFeature, expSplitValue := int32(0), byte(2)
     if (bestFeatureNum != expBestFeature) || (splitValue != expSplitValue) {
         t.Errorf("(bestFeatureNum, splitValue) == (%d, %d); expected (%d, %d)\n",
