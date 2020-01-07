@@ -23,6 +23,11 @@ func init() {
 
 
 func LowercaseAndRemoveSpecialChars(s string) string {
+    return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), "")
+}
+
+
+func LowercaseAndSpaceSpecialChars(s string) string {
     return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), " ")
 }
 
