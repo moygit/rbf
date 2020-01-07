@@ -2,7 +2,7 @@ package rbf
 
 
 const NUM_TREES = 20
-const TREE_SIZE = 1 << 25 // roughly 32M
+const TREE_SIZE = 1 << 25 // roughly 32M, tree has depths 0 .. 24
 
 const LEAF_SIZE = 64
 
