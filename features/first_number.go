@@ -1,15 +1,18 @@
 package features
 
 
+import (
+    "encoding/binary"
+    "io"
+)
+
+
 // Feature that gets the first number in a string (mod 256).
 // NOTE: We allow the user to specify the number of times they want this repeated.
 
 
-import "encoding/gob"
-
-
 //----------------------------------------------------------------------------------------------------
-// Wrapper around FirstNumber to provide FeatureSetConfig
+// Provide FeatureSetConfig
 var DefaultFirstNumber FirstNumber
 
 type FirstNumber struct {
@@ -25,6 +28,19 @@ func (fn FirstNumber) FromStringInPlace(input string, featureArray []byte) {
     for i := byte(0); i < fn.Count; i++ {
         featureArray[i] = firstNum
     }
+}
+
+const first_number_type = int32(11)
+
+func (fn FirstNumber) Serialize(writer io.Writer) {
+    binary.Write(writer, binary.LittleEndian, first_number_type)
+    binary.Write(writer, binary.LittleEndian, int32(fn.Count))
+}
+
+func deserialize_first_number(reader io.Reader) FeatureSetConfig {
+    var count int32
+    binary.Read(reader, binary.LittleEndian, &count)
+    return FirstNumber{byte(count)}
 }
 //----------------------------------------------------------------------------------------------------
 
@@ -57,6 +73,5 @@ func GetFirstNumber(input string) byte {
 }
 
 func init() {
-    gob.Register(FirstNumber{})
     DefaultFirstNumber = FirstNumber{20}
 }

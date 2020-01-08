@@ -2,6 +2,8 @@ package features
 
 
 import (
+    "encoding/binary"
+    "io"
     "regexp"
     "strings"
 )
@@ -19,6 +21,7 @@ type FeatureSetConfig interface {
     Size() int32    // can't just use an int here because we want to serialize this
                     // and go serialization doesn't handle int's (without sizes) well
     FromStringInPlace(s string, features []byte)
+    Serialize(writer io.Writer)     // write a type-identifier and then write data needed to reconstruct the value
 }
 
 
@@ -105,4 +108,40 @@ func testSliceIsSingleValue(slice []byte, val byte) bool {
         }
     }
     return true
+}
+
+
+func SerializeArray(features []FeatureSetConfig, writer io.Writer) {
+    binary.Write(writer, binary.LittleEndian, int32(len(features)))
+    for _, feature := range features {
+        feature.Serialize(writer)
+    }
+}
+
+func DeserializeArray(reader io.Reader) []FeatureSetConfig {
+    var length int32
+    binary.Read(reader, binary.LittleEndian, &length)
+    features := make([]FeatureSetConfig, length)
+    for i := int32(0); i < length; i++ {
+        features[i] = Deserialize(reader)
+    }
+    return features
+}
+
+func Deserialize(reader io.Reader) FeatureSetConfig {
+    var typeIdentifier int32
+    binary.Read(reader, binary.LittleEndian, &typeIdentifier)
+    switch typeIdentifier {
+    case followgrams_type:
+        return deserialize_followgrams(reader)
+    case first_number_type:
+        return deserialize_first_number(reader)
+    case last_number_type:
+        return deserialize_last_number(reader)
+    case occurrence_counts_type:
+        return deserialize_occurrence_counts(reader)
+    default:
+        // TODO: error!
+        return nil
+    }
 }

@@ -2,20 +2,8 @@ package features
 
 
 import (
-    // "encoding/binary"
-    // "fmt"
-    // "io/ioutil"
-    // "os"
-    // "math/rand"
-    "encoding/gob"
-    // "sort"
-
-    // expand "github.com/openvenues/gopostal/expand"
-    // parser "github.com/openvenues/gopostal/parser"
-
-    // for logging only:
-    // "log"
-    // "os"
+    "encoding/binary"
+    "io"
 )
 
 
@@ -25,7 +13,7 @@ var num_followgrams int
 
 
 //----------------------------------------------------------------------------------------------------
-// Wrapper around Followgrams to provide FeatureSetConfig
+// Provide FeatureSetConfig
 var DefaultFollowgrams Followgrams
 
 type Followgrams struct {
@@ -60,11 +48,23 @@ func (f Followgrams) FromStringInPlace(input string, featureArray []byte) {
         }
     }
 }
+
+const followgrams_type = int32(1)
+
+func (f Followgrams) Serialize(writer io.Writer) {
+    binary.Write(writer, binary.LittleEndian, followgrams_type)
+    binary.Write(writer, binary.LittleEndian, int32(f.WindowSize))
+}
+
+func deserialize_followgrams(reader io.Reader) FeatureSetConfig {
+    var windowSize int32
+    binary.Read(reader, binary.LittleEndian, &windowSize)
+    return Followgrams{int(windowSize)}
+}
 //----------------------------------------------------------------------------------------------------
 
 
 func init() {
-    gob.Register(Followgrams{})
     DefaultFollowgrams = Followgrams{followgram_default_window_size}
     num_followgrams = ALPHABET_SIZE * ALPHABET_SIZE
 }

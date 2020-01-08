@@ -1,6 +1,12 @@
 package features
 
 
+import (
+    "encoding/binary"
+    "io"
+)
+
+
 // We want features that give the index of the nth occurrence of each letter in our alphabet in the
 // input string. For example, for the string "edcba" we would have:
 //    firstOccurrences = [4, 3, 2, 1, 0, ...]
@@ -10,11 +16,8 @@ package features
 //    firstOccurrences = [4, 3, 2, 1, 0, 255, 255, ...]
 
 
-import "encoding/gob"
-
-
 //----------------------------------------------------------------------------------------------------
-// Wrapper around OccurrenceCounts to provide FeatureSetConfig
+// Provide FeatureSetConfig
 var DefaultOccurrenceCounts OccurrenceCounts
 
 type OccurrenceCounts struct {
@@ -68,10 +71,25 @@ func (o OccurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
         }
     }
 }
+
+const occurrence_counts_type = int32(21)
+
+func (oc OccurrenceCounts) Serialize(writer io.Writer) {
+    b2i := map[bool]int32{false: 0, true: 1}
+    binary.Write(writer, binary.LittleEndian, occurrence_counts_type)
+    binary.Write(writer, binary.LittleEndian, int32(b2i[oc.DirectionIsHead]))
+    binary.Write(writer, binary.LittleEndian, int32(oc.NumberOfOccurrences))
+}
+
+func deserialize_occurrence_counts(reader io.Reader) FeatureSetConfig {
+    var directionIsHead, numOccurrences int32
+    binary.Read(reader, binary.LittleEndian, &directionIsHead)
+    binary.Read(reader, binary.LittleEndian, &numOccurrences)
+    return OccurrenceCounts{directionIsHead == 0, byte(numOccurrences)}
+}
 //----------------------------------------------------------------------------------------------------
 
 
 func init() {
-    gob.Register(OccurrenceCounts{})
     DefaultOccurrenceCounts = OccurrenceCounts{true, 3}
 }

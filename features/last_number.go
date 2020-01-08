@@ -1,15 +1,18 @@
 package features
 
 
+import (
+    "encoding/binary"
+    "io"
+)
+
+
 // Feature that gets the last number in a string (mod 256).
 // NOTE: We allow the user to specify the number of times they want this repeated.
 
 
-import "encoding/gob"
-
-
 //----------------------------------------------------------------------------------------------------
-// Wrapper around LastNumber to provide FeatureSetConfig
+// Provide FeatureSetConfig
 var DefaultLastNumber LastNumber
 
 type LastNumber struct {
@@ -25,6 +28,19 @@ func (fn LastNumber) FromStringInPlace(input string, featureArray []byte) {
     for i := byte(0); i < fn.Count; i++ {
         featureArray[i] = lastNum
     }
+}
+
+const last_number_type = int32(12)
+
+func (ln LastNumber) Serialize(writer io.Writer) {
+    binary.Write(writer, binary.LittleEndian, last_number_type)
+    binary.Write(writer, binary.LittleEndian, int32(ln.Count))
+}
+
+func deserialize_last_number(reader io.Reader) FeatureSetConfig {
+    var count int32
+    binary.Read(reader, binary.LittleEndian, &count)
+    return LastNumber{byte(count)}
 }
 //----------------------------------------------------------------------------------------------------
 
@@ -60,6 +76,5 @@ func GetLastNumber(input string) byte {
 }
 
 func init() {
-    gob.Register(LastNumber{})
     DefaultLastNumber = LastNumber{20}
 }
