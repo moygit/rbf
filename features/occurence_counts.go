@@ -1,19 +1,19 @@
 package features
 
 
-import (
-    "encoding/binary"
-    "io"
-)
-
-
 // We want features that give the index of the nth occurrence of each letter in our alphabet in the
 // input string. For example, for the string "edcba" we would have:
-//    firstOccurrences = [4, 3, 2, 1, 0, ...]
+//    firstOccurrences = [4, 3, 2, 1, 0, ...] ('a' occurs in 4th pos, 'b' in 3rd pos, etc.)
 // When the character doesn't occur in the string we say that the nth occurrence is \infty
 // (analogous to stopping-times), which in our case would be 255. So to complete the above example
 // we would have:
 //    firstOccurrences = [4, 3, 2, 1, 0, 255, 255, ...]
+
+
+import (
+    "encoding/binary"
+    "io"
+)
 
 
 //----------------------------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ type OccurrenceCounts struct {
 }
 
 func (o OccurrenceCounts) Size() int32 {
-    return int32(ALPHABET_SIZE) * int32(o.NumberOfOccurrences)
+    return int32(alphabet_size) * int32(o.NumberOfOccurrences)
 }
 
-func (o OccurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
+func (o OccurrenceCounts) fromStringInPlace(input string, featureArray []byte) {
     // trim string to max length
     sNormalized := []byte(normalizeString(input))
     sLength := len(sNormalized)
@@ -47,12 +47,12 @@ func (o OccurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
     }
 
     // function to update the feature-array if we've seen the ith byte fewer than NumberOfOccurrences times
-    allCharCounts := make([]byte, ALPHABET_SIZE)
+    allCharCounts := make([]byte, alphabet_size)
     processChar := func(posInString int, ch byte) {
-        charIndex := CHAR_MAP[ch]
+        charIndex := char_map[ch]
         charCount := allCharCounts[charIndex]
         if charCount < o.NumberOfOccurrences {
-            featureArray[(charCount * byte(ALPHABET_SIZE)) + byte(charIndex)] = byte(posInString)
+            featureArray[(charCount * byte(alphabet_size)) + byte(charIndex)] = byte(posInString)
             allCharCounts[charIndex] += 1
         }
     }

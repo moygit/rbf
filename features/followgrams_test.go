@@ -1,9 +1,6 @@
 package features
 
-
-import (
-    "testing"
-)
+import "testing"
 
 
 func TestGetFollowgrams(t *testing.T) {
@@ -19,7 +16,7 @@ func TestGetFollowgrams(t *testing.T) {
     // given:
     f := Followgrams{3}
     // when:
-    followgrams := f.FromString("abcdefgh")
+    followgrams := f.fromString("abcdefgh")
     // then:
     if !sliceIsSingleValue(followgrams[1:4], byte(1)) ||        // a
        !sliceIsSingleValue(followgrams[39:42], byte(1)) ||      // b
@@ -46,7 +43,7 @@ func TestGetFollowgrams(t *testing.T) {
     // given:
     f = Followgrams{6}
     // when:
-    followgrams = f.FromString("aaaaaaaa")
+    followgrams = f.fromString("aaaaaaaa")
     // then:
     if followgrams[0] != 27 {
         t.Errorf("aa count is %d; expected %d", followgrams[0], 27)

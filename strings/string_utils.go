@@ -7,31 +7,32 @@ import (
 )
 
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789 "
-var CHAR_MAP map[byte]int
-var NON_ALNUM_PATTERN *regexp.Regexp
+const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 "
+var char_map map[byte]int
+var non_alnum_pattern *regexp.Regexp
 
 
 func init() {
-    CHAR_MAP = make(map[byte]int)
-    for i := 0; i < len(ALPHABET); i++ {
-        CHAR_MAP[ALPHABET[i]] = i
+    char_map = make(map[byte]int)
+    for i := 0; i < len(alphabet); i++ {
+        char_map[alphabet[i]] = i
     }
 
-    NON_ALNUM_PATTERN = regexp.MustCompile("[^a-z0-9]+")
+    non_alnum_pattern = regexp.MustCompile("[^a-z0-9]+")
 }
 
 
 func LowercaseAndRemoveSpecialChars(s string) string {
-    return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), "")
+    return non_alnum_pattern.ReplaceAllLiteralString(strings.ToLower(s), "")
 }
 
 
 func LowercaseAndSpaceSpecialChars(s string) string {
-    return NON_ALNUM_PATTERN.ReplaceAllLiteralString(strings.ToLower(s), " ")
+    return non_alnum_pattern.ReplaceAllLiteralString(strings.ToLower(s), " ")
 }
 
 
+// Experimental and inefficient, not in use right now and will likely be removed.
 func OneDirectionalJaccard2GramSimilarity(reference string, eval string) float64 {
     // Note: these are ASCIIized strings, so we can iterate over bytes instead of runes.
 
@@ -39,7 +40,7 @@ func OneDirectionalJaccard2GramSimilarity(reference string, eval string) float64
     getNGramDict := func (s string) map[int]int {
         nGramDict := make(map[int]int)
         for i := 0; i < len(s) - 1; i++ {
-            key := (CHAR_MAP[s[i]] * len(CHAR_MAP)) + CHAR_MAP[s[i+1]]  // treat each Ngram as a number
+            key := (char_map[s[i]] * len(char_map)) + char_map[s[i+1]]  // treat each Ngram as a number
             nGramDict[key] += 1
             allNGrams[key] = true
         }
@@ -68,6 +69,7 @@ func OneDirectionalJaccard2GramSimilarity(reference string, eval string) float64
 }
 
 
+// Experimental and inefficient, not in use right now and will likely be removed.
 func Jaccard2gramSimilarity(s1 string, s2 string) float64 {
     // Note: these are ASCIIized strings, so we can iterate over bytes instead of runes.
 
@@ -75,7 +77,7 @@ func Jaccard2gramSimilarity(s1 string, s2 string) float64 {
     getNGramDict := func (s string) map[int]int {
         nGramDict := make(map[int]int)
         for i := 0; i < len(s) - 1; i++ {
-            key := (CHAR_MAP[s[i]] * len(CHAR_MAP)) + CHAR_MAP[s[i+1]]  // treat each Ngram as a number
+            key := (char_map[s[i]] * len(char_map)) + char_map[s[i+1]]  // treat each Ngram as a number
             nGramDict[key] += 1
             allNGrams[key] = true
         }
@@ -102,6 +104,7 @@ func Jaccard2gramSimilarity(s1 string, s2 string) float64 {
 }
 
 
+// Experimental and inefficient, not in use right now and will likely be removed.
 func JaccardFollowgramSimilarity(s1 string, s2 string) float64 {
     // Note: these are ASCIIized strings, so we can iterate over bytes instead of runes.
 
@@ -110,7 +113,7 @@ func JaccardFollowgramSimilarity(s1 string, s2 string) float64 {
         followGramDict := make(map[int]int)
         for i := 0; i < len(s) - 1; i++ {
             for j := i + 1; j < len(s); j++ {
-                key := (CHAR_MAP[s[i]] * len(CHAR_MAP)) + CHAR_MAP[s[j]]  // treat each Ngram as a number
+                key := (char_map[s[i]] * len(char_map)) + char_map[s[j]]  // treat each Ngram as a number
                 followGramDict[key] += 1
                 allFollowGrams[key] = true
             }

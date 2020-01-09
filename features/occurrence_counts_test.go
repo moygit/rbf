@@ -42,15 +42,15 @@ func TestGetLongOccurrenceCounts(t *testing.T) {
     occurrenceCounts := fromString(strings.Repeat("a", 400))
 
     // then:
-    if occurrenceCounts[0 * ALPHABET_SIZE] != 0 ||      // first a
-       occurrenceCounts[1 * ALPHABET_SIZE] != 1 ||      // second a
-       occurrenceCounts[2 * ALPHABET_SIZE] != 2 {       // third a
+    if occurrenceCounts[0 * alphabet_size] != 0 ||      // first a
+       occurrenceCounts[1 * alphabet_size] != 1 ||      // second a
+       occurrenceCounts[2 * alphabet_size] != 2 {       // third a
         t.Errorf("got invalid occurrence count for letters in string (a**400)+bb")
     }
 
-    if !testSliceIsSingleValue(occurrenceCounts[0 * ALPHABET_SIZE + 1:1 * ALPHABET_SIZE], byte(255)) ||
-       !testSliceIsSingleValue(occurrenceCounts[1 * ALPHABET_SIZE + 1:2 * ALPHABET_SIZE], byte(255)) ||
-       !testSliceIsSingleValue(occurrenceCounts[2 * ALPHABET_SIZE + 1:3 * ALPHABET_SIZE], byte(255)) {
+    if !testSliceIsSingleValue(occurrenceCounts[0 * alphabet_size + 1:1 * alphabet_size], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[1 * alphabet_size + 1:2 * alphabet_size], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[2 * alphabet_size + 1:3 * alphabet_size], byte(255)) {
         t.Errorf("got non-infinite occurrence count for some letter not in string (a**400)+bb")
     }
 }
@@ -89,19 +89,19 @@ func TestGetBackwardLongOccurrenceCounts(t *testing.T) {
     occurrenceCounts := fromString(strings.Repeat("a", 400) + "bb")
 
     // then:
-    if occurrenceCounts[0 * ALPHABET_SIZE + 0] != 2 ||      // first a
-       occurrenceCounts[1 * ALPHABET_SIZE + 0] != 3 ||      // second a
-       occurrenceCounts[2 * ALPHABET_SIZE + 0] != 4 ||      // third a
-       occurrenceCounts[0 * ALPHABET_SIZE + 1] != 0 ||      // first b
-       occurrenceCounts[1 * ALPHABET_SIZE + 1] != 1 ||      // second b
-       occurrenceCounts[2 * ALPHABET_SIZE + 1] != 255 {     // no more b's
+    if occurrenceCounts[0 * alphabet_size + 0] != 2 ||      // first a
+       occurrenceCounts[1 * alphabet_size + 0] != 3 ||      // second a
+       occurrenceCounts[2 * alphabet_size + 0] != 4 ||      // third a
+       occurrenceCounts[0 * alphabet_size + 1] != 0 ||      // first b
+       occurrenceCounts[1 * alphabet_size + 1] != 1 ||      // second b
+       occurrenceCounts[2 * alphabet_size + 1] != 255 {     // no more b's
         fmt.Printf("%v\n", occurrenceCounts)
         t.Errorf("got invalid backward occurrence count for letters in string (a**400)+bb")
     }
 
-    if !testSliceIsSingleValue(occurrenceCounts[0 * ALPHABET_SIZE + 2:1 * ALPHABET_SIZE], byte(255)) ||
-       !testSliceIsSingleValue(occurrenceCounts[1 * ALPHABET_SIZE + 2:2 * ALPHABET_SIZE], byte(255)) ||
-       !testSliceIsSingleValue(occurrenceCounts[2 * ALPHABET_SIZE + 1:3 * ALPHABET_SIZE], byte(255)) {
+    if !testSliceIsSingleValue(occurrenceCounts[0 * alphabet_size + 2:1 * alphabet_size], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[1 * alphabet_size + 2:2 * alphabet_size], byte(255)) ||
+       !testSliceIsSingleValue(occurrenceCounts[2 * alphabet_size + 1:3 * alphabet_size], byte(255)) {
         t.Errorf("got non-infinite backward occurrence count for some letter not in string (a**400)+bb")
     }
 }

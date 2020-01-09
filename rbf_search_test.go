@@ -8,7 +8,7 @@ import (
 
 func TestFindPoint(t *testing.T) {
     // given:
-    trees := []RandomBinaryTree{MakeTestTree(), MakeTestTree()}
+    trees := []RandomBinaryTree{NewTestTree(), NewTestTree()}
     forest := RandomBinaryForest{trees}
     queryPoint := []byte{6, 0, 0, 0, 0, 0}  // initial slice of followgrams for "aaaa"
     // when:

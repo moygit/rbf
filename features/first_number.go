@@ -1,14 +1,15 @@
 package features
 
 
+// Feature that gets the first number in a string (mod 256).
+// NOTE: We allow the user to specify the number of times they want this feature repeated
+// (poor man's weighting).
+
+
 import (
     "encoding/binary"
     "io"
 )
-
-
-// Feature that gets the first number in a string (mod 256).
-// NOTE: We allow the user to specify the number of times they want this repeated.
 
 
 //----------------------------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ func (fn FirstNumber) Size() int32 {
     return int32(fn.Count)
 }
 
-func (fn FirstNumber) FromStringInPlace(input string, featureArray []byte) {
+func (fn FirstNumber) fromStringInPlace(input string, featureArray []byte) {
     firstNum := GetFirstNumber(input)
     for i := byte(0); i < fn.Count; i++ {
         featureArray[i] = firstNum
@@ -44,7 +45,7 @@ func deserialize_first_number(reader io.Reader) FeatureSetConfig {
 }
 //----------------------------------------------------------------------------------------------------
 
-// Write this from scratch instead of using regular expressions. Much faster.
+// Do this from scratch instead of using regular expressions. Much faster.
 func GetFirstNumber(input string) byte {
     num := 0
     inNum := false
@@ -69,6 +70,7 @@ func GetFirstNumber(input string) byte {
             }
         }
     }
+    // if the number was at the end of the string
     return byte(num % 256)
 }
 

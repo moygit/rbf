@@ -11,7 +11,7 @@ import (
 )
 
 
-const FLOAT_TOLERANCE = 0.000001
+const float_tolerance = 0.000001
 
 const s0 = "1 r de richelieu paris 75010"
 const s1 = "1 r xdes xrichelieux xparisx 75010"  // typos
@@ -25,7 +25,7 @@ const t1 = "96 rue beaubourg paris 75003 fr"
 func TestJaccardSimilarity(t *testing.T) {
     testOneCase := func(s1, s2 string, simFunc func(string, string) float64, funcName string, expSim float64) {
         sim := simFunc(s1, s2)
-        if !(math.Abs(expSim - sim) < FLOAT_TOLERANCE) {
+        if !(math.Abs(expSim - sim) < float_tolerance) {
             t.Errorf("%s(%s, %s) == %f; expected %f", funcName, s1, s2, sim, expSim)
         }
     }

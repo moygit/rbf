@@ -2,8 +2,6 @@ package rbf
 
 
 import (
-    // "bytes"
-    // "fmt"
     "reflect"
     "testing"
 )
@@ -11,7 +9,7 @@ import (
 
 var result int32
 func BenchmarkGetSingleFeatureFrequencies(b *testing.B) {
-    // run the integrate function b.N times
+    // run getSingleFeatureFrequencies b.N times
     for n := 0; n < b.N; n++ {
         localFeatureArray := [][]byte{{0}, {0}, {5}, {5}, {5}, {5}, {7}, {7}, {7}, {7}}
         localRowIndex := []int32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -55,7 +53,9 @@ func TestSplitOneFeature(t *testing.T) {
             moment += int32(i) * int32(x)
             count += int32(x)
         }
+        // when
         totalMoment, pos, leftCount := splitOneFeature(L, moment, count)
+        // then
         if (totalMoment != expTotalMoment) || (pos != expPos) || (leftCount != expLeftCount) {
             t.Errorf("(totalMoment, pos, leftCount) == (%f, %d, %d); expected (%f, %d, %d)",
                      totalMoment, pos, leftCount, expTotalMoment, expPos, expLeftCount)
