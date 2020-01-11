@@ -100,10 +100,10 @@ func ReadForestFromReader(reader io.Reader) RandomBinaryForest {
 
 func (forest RandomBinaryForest) WriteToWriter(writer io.Writer) {
     // first write the number of trees
-    err := binary.Write(writer, binary.LittleEndian, int32(len(forest.trees)))
+    err := binary.Write(writer, binary.LittleEndian, int32(len(forest.Trees)))
     check(err)
     // and now write each tree
-    for _, tree := range forest.trees {
+    for _, tree := range forest.Trees {
         tree.writeToWriter(writer)
     }
 }

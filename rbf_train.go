@@ -45,16 +45,16 @@ treeStatsFile, _ = os.Create("tree_stats.txt")
 }
 
 
-func TrainForest(featureArray [][]byte, numFeaturesToCompare int32) RandomBinaryForest {
+func TrainForest(featureArray [][]byte, numTrees, treeDepth, leafSize, numFeaturesToCompare int32) RandomBinaryForest {
     numFeatures := int32(len(featureArray[0]))
     // make and train trees in parallel:
-    trees := make([]RandomBinaryTree, NUM_TREES)
+    trees := make([]RandomBinaryTree, numTrees)
     var wg sync.WaitGroup
-    for i := 0; i < NUM_TREES; i++ {
+    for i := int32(0); i < numTrees; i++ {
         wg.Add(1)
-        go func(j int) {
+        go func(j int32) {
             defer wg.Done()
-            trees[j] = trainOneTree(featureArray, numFeatures, numFeaturesToCompare)
+            trees[j] = trainOneTree(featureArray, treeDepth, leafSize, numFeatures, numFeaturesToCompare)
         }(i)
     }
     wg.Wait()
@@ -65,17 +65,18 @@ treeStatsFile.Close()
 
 // Allocate space for the tree's component arrays and then
 // call the recursive `calculateOneNode` function which does the real training.
-func trainOneTree(featureArray [][]byte, numFeatures, numFeaturesToCompare int32) RandomBinaryTree {
+func trainOneTree(featureArray [][]byte, treeDepth, leafSize, numFeatures, numFeaturesToCompare int32) RandomBinaryTree {
     rowIndex := make([]int32, len(featureArray))
     for i := int32(0); i < int32(len(rowIndex)); i++ {
         rowIndex[i] = i
     }
-    treeFirst := make([]int32, TREE_SIZE)
-    treeSecond := make([]int32, TREE_SIZE)
+    treeSize := 1 << treeDepth  // golang doesn't have integer power...
+    treeFirst := make([]int32, treeSize)
+    treeSecond := make([]int32, treeSize)
     var numInternalNodes int32
     var numLeaves int32
     rbt := RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
-    calculateOneNode(featureArray, &rbt, numFeatures, numFeaturesToCompare, 0, int32(len(rowIndex)), 0, 0)
+    calculateOneNode(featureArray, &rbt, leafSize, numFeatures, numFeaturesToCompare, 0, int32(len(rowIndex)), 0, 0)
     return rbt
 }
 
@@ -90,7 +91,7 @@ func trainOneTree(featureArray [][]byte, numFeatures, numFeaturesToCompare int32
 // - Child calls will look at distinct sub-views of this view.
 // - No two calls to `calculateOneNode` will have the same treeArrayPos
 func calculateOneNode(featureArray [][]byte, tree *RandomBinaryTree,
-                      numFeatures, numFeaturesToCompare,
+                      leafSize, numFeatures, numFeaturesToCompare,
                       indexStart, indexEnd int32, treeArrayPos int, depth int) {
     // logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
     if 2*treeArrayPos+2 >= len(tree.treeFirst) {
@@ -102,7 +103,7 @@ fmt.Fprintf(treeStatsFile, "%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeAr
         return
     }
 
-    if indexEnd-indexStart < LEAF_SIZE {
+    if indexEnd-indexStart < leafSize {
     // Not enough items left to split. Make a leaf.
         // logger.Printf("DEBUG: making leaf")
         tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = high_bit_1 ^ indexStart, high_bit_1 ^ indexEnd
@@ -122,8 +123,8 @@ fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArr
 fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, featureNum, featureSplitValue, features.CHAR_REVERSE_MAP[featureNum])
         // TODO: remove numInternalNodes
         tree.numInternalNodes += 1
-        calculateOneNode(featureArray, tree, numFeatures, numFeaturesToCompare, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
-        calculateOneNode(featureArray, tree, numFeatures, numFeaturesToCompare, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
+        calculateOneNode(featureArray, tree, leafSize, numFeatures, numFeaturesToCompare, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
+        calculateOneNode(featureArray, tree, leafSize, numFeatures, numFeaturesToCompare, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
 }
 

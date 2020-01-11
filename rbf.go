@@ -1,16 +1,6 @@
 package rbf
 
 
-const NUM_TREES = 20
-const TREE_SIZE = 1 << 25 // roughly 32M, tree has depths 0 .. 24
-const LEAF_SIZE = 64
-
-// See comments below (in RandomBinaryTree definition) on ugly bit arithmetic for speed
-const high_bit = 31 // low bit is 0, high bit is 31
-const high_bit_1 = int32(-1) << high_bit
-const max_feature_value = 255 // openaddresses data has max followgram count ~200
-
-
 type RandomBinaryTree struct {
     // We have arrays of arrays of features. Instead of expensively moving those rows around when
     // sorting and partitioning we have an index into those and move the index elements around.
@@ -23,8 +13,10 @@ type RandomBinaryTree struct {
     // - if it's an internal node: the feature number and the value at which to split the feature
     // - if it's a leaf node: start and end indices in the rowIndex array; that view in the rowIndex
     //   array tells us the indices of rows in the original training set that are in this leaf
-    // We distinguish the two cases by doing some bit-arithmetic. Yes, I know this is ugly, but the
-    // alternative is to have a whole 'nother pair of large arrays.
+    // We distinguish the two cases by doing some bit-arithmetic.
+    // 1. Yes, I know this is ugly, but the alternative is to have a whole 'nother pair of large arrays.
+    // 2. Yes, I considered using hashmaps instead, but they're much slower (expected) and also take
+    //    WAY more memory (which surprised me).
     treeFirst  []int32
     treeSecond []int32
 
@@ -35,18 +27,27 @@ type RandomBinaryTree struct {
 
 
 type RandomBinaryForest struct {
-    trees []RandomBinaryTree
+    Trees []RandomBinaryTree
 }
 
 
+// See comments above (in RandomBinaryTree definition) on ugly bit arithmetic for speed
+const high_bit = 31 // low bit is 0, high bit is 31 because we're using int32s
+const high_bit_1 = int32(-1) << high_bit
+const max_feature_value = 255 // openaddresses data has max followgram count ~200
+
+
+
+// It helps to have test values accessible from wrappers and sub-packages,
+// so these need to be defined here.
 var TEST_TRAINING_ADDRS []string
 
 func init() {
     TEST_TRAINING_ADDRS = []string{"aaa", "abc"}
 }
 
-// Create a dummy tree for testing. It helps to have test trees accessible
-// from wrappers and sub-packages, so this needs to be defined here.
+// Create a dummy tree for testing.
+//
 // The test tree looks like it was "trained" on the strings "aaa" and "abc".
 //   root node:
 //     treeFirst[0]: i.e. split on the 0 feature (i.e. "aa")

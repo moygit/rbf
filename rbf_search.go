@@ -28,7 +28,7 @@ func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
 func (forest RandomBinaryForest) FindPoint(queryPoint []byte) map[int32]bool {
     // query each tree and get results (indices into training feature-array)
     resultIndices := make(map[int32]bool)
-    for _, tree := range forest.trees {
+    for _, tree := range forest.Trees {
         treeResultIndices := tree.FindPoint(queryPoint)
         for _, index := range treeResultIndices {
             resultIndices[index] = true
