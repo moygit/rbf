@@ -75,31 +75,36 @@ func trainOneTree(featureArray [][]byte, treeDepth, leafSize, numFeatures, numFe
     treeSecond := make([]int32, treeSize)
     var numInternalNodes int32
     var numLeaves int32
-    rbt := RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
-    calculateOneNode(featureArray, &rbt, leafSize, numFeatures, numFeaturesToCompare, 0, int32(len(rowIndex)), 0, 0)
-    return rbt
+    tree := &RandomBinaryTree{rowIndex, treeFirst, treeSecond, numInternalNodes, numLeaves}
+    tree.calculateOneNode(featureArray, leafSize, numFeatures, numFeaturesToCompare, 0, int32(len(rowIndex)), 0, 0)
+    return *tree
 }
 
 
 // Calculate the split (or leaf) at one node (and its descendants). So this is doing all the real work of training.
 // Params:
-// - TODO: update this
+// - feature array
+// - leaf size, total number of features, and number of features to compare
+//   (not adding these to the tree struct b/c they're only needed at training time)
 // - indexStart and indexEnd: the view into rowIndex that we're considering right now
 // - treeArrayPos: the position of this node in the tree arrays
+// - TODO: REMOVE depth of this node in the tree
 // Guarantees:
 // - Parallel calls to `calculateOneNode` will look at non-intersecting views.
 // - Child calls will look at distinct sub-views of this view.
 // - No two calls to `calculateOneNode` will have the same treeArrayPos
-func calculateOneNode(featureArray [][]byte, tree *RandomBinaryTree,
-                      leafSize, numFeatures, numFeaturesToCompare,
-                      indexStart, indexEnd int32, treeArrayPos int, depth int) {
+func (tree *RandomBinaryTree) calculateOneNode(featureArray [][]byte,
+        leafSize, numFeatures, numFeaturesToCompare,
+        indexStart, indexEnd int32, treeArrayPos int, depth int) {
     // logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
     if 2*treeArrayPos+2 >= len(tree.treeFirst) {
     // Special termination condition to regulate depth.
         tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = high_bit_1 ^ indexStart, high_bit_1 ^ indexEnd
         // TODO: remove numLeaves
         tree.numLeaves += 1
-fmt.Fprintf(treeStatsFile, "%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
+        // TODO: remove debugging output
+        fmt.Fprintf(treeStatsFile, "%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos,
+                    depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
         return
     }
 
@@ -109,22 +114,26 @@ fmt.Fprintf(treeStatsFile, "%d,%d,depth-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeAr
         tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = high_bit_1 ^ indexStart, high_bit_1 ^ indexEnd
         // TODO: remove numLeaves
         tree.numLeaves += 1
-fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
+        // TODO: remove debugging output
+        fmt.Fprintf(treeStatsFile, "%d,%d,size-based-leaf,%d,%d,%d,%d,%d,%d,\n", treeArrayPos, depth,
+                    indexStart, indexEnd, indexEnd-indexStart, 0, 0, 0)
     } else {
     // Not a leaf. Get a random subset of numFeaturesToCompare features, find the best one, and split this node.
-        featureNum, featureSplitValue, indexSplit := splitNode(featureArray, tree.rowIndex, numFeatures, numFeaturesToCompare, indexStart, indexEnd)
+        featureNum, featureSplitValue, indexSplit :=
+            splitNode(featureArray, tree.rowIndex, numFeatures, numFeaturesToCompare, indexStart, indexEnd)
 
         // TODO: remove this (no longer an issue)
         if indexSplit == indexStart || indexSplit == indexEnd {
             logger.Printf("DEBUG: bad split; feature-num: %d, count: %d", featureNum, indexEnd-indexStart)
         }
         tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = featureNum, int32(featureSplitValue)
-        // TODO: remove this
-fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd, indexEnd-indexStart, indexSplit, featureNum, featureSplitValue, features.CHAR_REVERSE_MAP[featureNum])
         // TODO: remove numInternalNodes
         tree.numInternalNodes += 1
-        calculateOneNode(featureArray, tree, leafSize, numFeatures, numFeaturesToCompare, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
-        calculateOneNode(featureArray, tree, leafSize, numFeatures, numFeaturesToCompare, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
+        // TODO: remove debugging output
+        fmt.Fprintf(treeStatsFile, "%d,%d,internal,%d,%d,%d,%d,%d,%d,%s\n", treeArrayPos, depth, indexStart, indexEnd,
+                    indexEnd-indexStart, indexSplit, featureNum, featureSplitValue, features.CHAR_REVERSE_MAP[featureNum])
+        tree.calculateOneNode(featureArray, leafSize, numFeatures, numFeaturesToCompare, indexStart, indexSplit, (2*treeArrayPos)+1, depth+1)
+        tree.calculateOneNode(featureArray, leafSize, numFeatures, numFeaturesToCompare, indexSplit, indexEnd, (2*treeArrayPos)+2, depth+1)
     }
 }
 
