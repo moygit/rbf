@@ -15,18 +15,18 @@ import (
 
 //----------------------------------------------------------------------------------------------------
 // Provide FeatureSetConfig
-var DefaultOccurrenceCounts OccurrenceCounts
+var DefaultOccurrencePositions OccurrencePositions
 
-type OccurrenceCounts struct {
+type OccurrencePositions struct {
 	DirectionIsHead     bool
 	NumberOfOccurrences byte
 }
 
-func (o OccurrenceCounts) Size() int32 {
+func (o OccurrencePositions) Size() int32 {
 	return int32(alphabet_size) * int32(o.NumberOfOccurrences)
 }
 
-func (o OccurrenceCounts) fromStringInPlace(input string, featureArray []byte) {
+func (o OccurrencePositions) fromStringInPlace(input string, featureArray []byte) {
 	// trim string to max length
 	sNormalized := []byte(normalizeString(input))
 	sLength := len(sNormalized)
@@ -44,13 +44,13 @@ func (o OccurrenceCounts) fromStringInPlace(input string, featureArray []byte) {
 	}
 
 	// function to update the feature-array if we've seen the ith byte fewer than NumberOfOccurrences times
-	allCharCounts := make([]byte, alphabet_size)
+	allCharPositions := make([]byte, alphabet_size)
 	processChar := func(posInString int, ch byte) {
 		charIndex := char_map[ch]
-		charCount := allCharCounts[charIndex]
-		if charCount < o.NumberOfOccurrences {
-			featureArray[(charCount*byte(alphabet_size))+byte(charIndex)] = byte(posInString)
-			allCharCounts[charIndex] += 1
+		charPosition := allCharPositions[charIndex]
+		if charPosition < o.NumberOfOccurrences {
+			featureArray[(charPosition*byte(alphabet_size))+byte(charIndex)] = byte(posInString)
+			allCharPositions[charIndex] += 1
 		}
 	}
 
@@ -69,24 +69,24 @@ func (o OccurrenceCounts) fromStringInPlace(input string, featureArray []byte) {
 	}
 }
 
-const occurrence_counts_type = int32(21)
+const occurrence_positions_type = int32(21)
 
-func (oc OccurrenceCounts) Serialize(writer io.Writer) {
+func (oc OccurrencePositions) Serialize(writer io.Writer) {
 	b2i := map[bool]int32{false: 0, true: 1}
-	binary.Write(writer, binary.LittleEndian, occurrence_counts_type)
+	binary.Write(writer, binary.LittleEndian, occurrence_positions_type)
 	binary.Write(writer, binary.LittleEndian, int32(b2i[oc.DirectionIsHead]))
 	binary.Write(writer, binary.LittleEndian, int32(oc.NumberOfOccurrences))
 }
 
-func deserialize_occurrence_counts(reader io.Reader) FeatureSetConfig {
+func deserialize_occurrence_positions(reader io.Reader) FeatureSetConfig {
 	var directionIsHead, numOccurrences int32
 	binary.Read(reader, binary.LittleEndian, &directionIsHead)
 	binary.Read(reader, binary.LittleEndian, &numOccurrences)
-	return OccurrenceCounts{directionIsHead == 0, byte(numOccurrences)}
+	return OccurrencePositions{directionIsHead == 0, byte(numOccurrences)}
 }
 
 //----------------------------------------------------------------------------------------------------
 
 func init() {
-	DefaultOccurrenceCounts = OccurrenceCounts{true, 3}
+	DefaultOccurrencePositions = OccurrencePositions{true, 3}
 }

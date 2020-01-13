@@ -140,8 +140,8 @@ func deserialize(reader io.Reader) FeatureSetConfig {
 		return deserialize_first_number(reader)
 	case last_number_type:
 		return deserialize_last_number(reader)
-	case occurrence_counts_type:
-		return deserialize_occurrence_counts(reader)
+	case occurrence_positions_type:
+		return deserialize_occurrence_positions(reader)
 	default:
 		panic("received unknown type identifier " + strconv.Itoa(int(typeIdentifier)))
 	}
