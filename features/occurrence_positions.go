@@ -2,11 +2,11 @@ package features
 
 // We want features that give the index of the nth occurrence of each letter in our alphabet in the
 // input string. For example, for the string "edcba" we would have:
-//    firstOccurrences = [4, 3, 2, 1, 0, ...] ('a' occurs in 4th pos, 'b' in 3rd pos, etc.)
+//    firstOccurrences == [4, 3, 2, 1, 0, ...] ('a' occurs in 4th pos, 'b' in 3rd pos, etc.)
 // When the character doesn't occur in the string we say that the nth occurrence is \infty
 // (analogous to stopping-times), which in our case would be 255. So to complete the above example
 // we would have:
-//    firstOccurrences = [4, 3, 2, 1, 0, 255, 255, ...]
+//    firstOccurrences == [4, 3, 2, 1, 0, 255, 255, ...]
 
 import (
 	"encoding/binary"
