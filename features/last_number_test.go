@@ -15,6 +15,19 @@ func TestGetLastNumber(t *testing.T) {
 	}
 }
 
+func TestGetLastNumberAsString(t *testing.T) {
+	// given:
+	strs := []string{"123 main st 789--", "123 456 1st st", "abcd 234 main st 678", "main st", "123 main st"}
+	expectedNums := []string{"789", "456", "678", "", "123"}
+	// when/then:
+	for i := 0; i < 4; i++ {
+		n := GetLastNumberAsString(strs[i])
+		if n != expectedNums[i] {
+			t.Errorf("bad last-num %s for string %s, expected %s\n", n, strs[i], expectedNums[i])
+		}
+	}
+}
+
 func TestGetLastNumberFeature(t *testing.T) {
 	// given:
 	fn := DefaultLastNumber

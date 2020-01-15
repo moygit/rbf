@@ -7,6 +7,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strings"
 )
 
 //----------------------------------------------------------------------------------------------------
@@ -70,6 +71,31 @@ func GetFirstNumber(input string) byte {
 	}
 	// if the number was at the end of the string
 	return byte(num % 256)
+}
+
+// Same as above, but return a string.
+func GetFirstNumberAsString(input string) string {
+	var num strings.Builder
+	inNum := false
+	for _, ch := range input {
+		if ch >= '0' && ch <= '9' {
+			num.WriteByte(byte(ch))
+			inNum = true
+		} else {
+			if inNum {
+				if ch >= 'a' && ch <= 'z' {
+					// Heuristic: this wasn't an actual number, more like "1st" or "3A"
+					num.Reset()
+					inNum = false
+				} else {
+					// we were inside the number but just fell out, so we're done
+					return strings.TrimLeft(num.String(), "0")
+				}
+			}
+		}
+	}
+	// if the number was at the end of the string
+	return strings.TrimLeft(num.String(), "0")
 }
 
 func init() {

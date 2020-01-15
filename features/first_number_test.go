@@ -15,6 +15,19 @@ func TestGetFirstNumber(t *testing.T) {
 	}
 }
 
+func TestGetFirstNumberAsString(t *testing.T) {
+	// given:
+	strs := []string{"000123 main st 789", "1st st 456 789", "abcd 234 main st 789", "main st", "main st 345"}
+	expectedNums := []string{"123", "456", "234", "", "345"}
+	// when/then:
+	for i := 0; i < 4; i++ {
+		n := GetFirstNumberAsString(strs[i])
+		if n != expectedNums[i] {
+			t.Errorf("bad first-num %s for string %s, expected %s\n", n, strs[i], expectedNums[i])
+		}
+	}
+}
+
 func TestGetFirstNumberFeature(t *testing.T) {
 	// given:
 	fn := DefaultFirstNumber

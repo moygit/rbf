@@ -7,6 +7,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strings"
 )
 
 //----------------------------------------------------------------------------------------------------
@@ -74,6 +75,46 @@ func GetLastNumber(input string) byte {
 	}
 	// if the number was at the (left) end of the string
 	return byte(num % 256)
+}
+
+// Same as above, but return a string.
+func GetLastNumberAsString(input string) string {
+	reverse := func(revDigits []byte) string {
+		var num strings.Builder
+		for i := len(revDigits) - 1; i >= 0; i-- {
+			num.WriteByte(revDigits[i])
+		}
+		return num.String()
+	}
+
+	lastCh := byte('-') // keep track of the last char we saw as we scan from the right before we saw the tail of the number
+	num := make([]byte, 0)
+	inNum := false
+	for i := len(input) - 1; i >= 0; i-- {
+		ch := input[i]
+		if ch >= '0' && ch <= '9' {
+			if inNum {
+				// we were already inside a number
+				num = append(num, byte(ch))
+			} else {
+				if lastCh < 'a' || lastCh > 'z' {
+					// this is the first (from right) numeric char, and the last char wasn't alphabetic
+					// (i.e. it was punctuation or whitespace), so we're now legitimately inside a number
+					num = append(num, byte(ch))
+					inNum = true
+				}
+			}
+		} else {
+			if inNum {
+				// we were inside the number but just fell out, so we're done
+				return reverse(num)
+			} else {
+				lastCh = ch
+			}
+		}
+	}
+	// if the number was at the (left) end of the string
+	return reverse(num)
 }
 
 func init() {
