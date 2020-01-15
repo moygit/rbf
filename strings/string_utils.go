@@ -6,11 +6,13 @@ import (
 )
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 "
-
+var alphabet_size int
 var char_map map[byte]int
 var non_alnum_pattern *regexp.Regexp
 
 func init() {
+	alphabet_size = len(alphabet)
+
 	char_map = make(map[byte]int)
 	for i := 0; i < len(alphabet); i++ {
 		char_map[alphabet[i]] = i
