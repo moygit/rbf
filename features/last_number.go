@@ -118,5 +118,5 @@ func GetLastNumberAsString(input string) string {
 }
 
 func init() {
-	DefaultLastNumber = LastNumber{20}
+	DefaultLastNumber = LastNumber{10}
 }
