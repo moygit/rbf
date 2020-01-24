@@ -134,6 +134,8 @@ func deserialize(reader io.Reader) FeatureSetConfig {
 	var typeIdentifier int32
 	binary.Read(reader, binary.LittleEndian, &typeIdentifier)
 	switch typeIdentifier {
+	case bigrams_type:
+		return deserialize_bigrams(reader)
 	case followgrams_type:
 		return deserialize_followgrams(reader)
 	case first_number_type:
