@@ -26,7 +26,7 @@ func (o OccurrencePositions) Size() int32 {
 	return int32(alphabet_size) * int32(o.NumberOfOccurrences)
 }
 
-func (o OccurrencePositions) fromStringInPlace(input string, featureArray []byte) {
+func (o OccurrencePositions) FromStringInPlace(input string, featureArray []byte) {
 	// trim string to max length
 	sNormalized := []byte(normalizeString(input))
 	sLength := len(sNormalized)

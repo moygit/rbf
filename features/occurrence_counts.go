@@ -23,7 +23,7 @@ func (o OccurrenceCounts) Size() int32 {
 	return int32(alphabet_size) * int32(o.Count)
 }
 
-func (o OccurrenceCounts) fromStringInPlace(input string, featureArray []byte) {
+func (o OccurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
 	sNormalized := []byte(normalizeString(input))
 	for _, ch := range sNormalized {
 		charIndex := char_map[ch]

@@ -45,7 +45,7 @@ func (f Followgrams) Size() int32 {
 	return int32(num_followgrams)
 }
 
-func (f Followgrams) fromStringInPlace(input string, featureArray []byte) {
+func (f Followgrams) FromStringInPlace(input string, featureArray []byte) {
 	sNormalized := normalizeString(input)
 	sNormalizedLen := len(sNormalized)
 
@@ -92,6 +92,6 @@ func init() {
 
 func (f Followgrams) fromString(input string) []byte {
 	featureArray := make([]byte, num_followgrams)
-	f.fromStringInPlace(input, featureArray)
+	f.FromStringInPlace(input, featureArray)
 	return featureArray
 }

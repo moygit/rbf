@@ -20,7 +20,7 @@ func (b Bigrams) Size() int32 {
 	return int32(alphabet_size * alphabet_size)
 }
 
-func (b Bigrams) fromStringInPlace(input string, featureArray []byte) {
+func (b Bigrams) FromStringInPlace(input string, featureArray []byte) {
 	input = normalizeString(input)
 	inputLen := len(input)
 
@@ -57,6 +57,6 @@ func init() {
 
 func (b Bigrams) fromString(input string) []byte {
 	featureArray := make([]byte, alphabet_size * alphabet_size)
-	b.fromStringInPlace(input, featureArray)
+	b.FromStringInPlace(input, featureArray)
 	return featureArray
 }

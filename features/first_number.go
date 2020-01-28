@@ -22,7 +22,7 @@ func (fn FirstNumber) Size() int32 {
 	return int32(fn.Count)
 }
 
-func (fn FirstNumber) fromStringInPlace(input string, featureArray []byte) {
+func (fn FirstNumber) FromStringInPlace(input string, featureArray []byte) {
 	firstNum := GetFirstNumber(input)
 	for i := byte(0); i < fn.Count; i++ {
 		featureArray[i] = firstNum

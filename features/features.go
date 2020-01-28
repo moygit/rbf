@@ -28,7 +28,7 @@ type FeatureSetConfig interface {
 
 	// Given the input string s, put features for s into the given byte-slice.
 	// Note: we do no position or size checking on the slice.
-	fromStringInPlace(s string, features []byte)
+	FromStringInPlace(s string, features []byte)
 
 	// write a type-identifier and then write data needed to reconstruct the value
 	Serialize(writer io.Writer)
@@ -78,7 +78,7 @@ func MakeFeatureCalculationFunctions(selectedFeatureSetConfigs []FeatureSetConfi
 	for i, featureSetConfig := range selectedFeatureSetConfigs {
 		thisFeatureSetSize := int(featureSetConfig.Size())
 		totalNumFeatures += thisFeatureSetSize
-		featureDefinitions[i] = featureSetRealized{startPos, totalNumFeatures, featureSetConfig.fromStringInPlace}
+		featureDefinitions[i] = featureSetRealized{startPos, totalNumFeatures, featureSetConfig.FromStringInPlace}
 		startPos += thisFeatureSetSize
 	}
 

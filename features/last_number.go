@@ -22,7 +22,7 @@ func (fn LastNumber) Size() int32 {
 	return int32(fn.Count)
 }
 
-func (fn LastNumber) fromStringInPlace(input string, featureArray []byte) {
+func (fn LastNumber) FromStringInPlace(input string, featureArray []byte) {
 	lastNum := GetLastNumber(input)
 	for i := byte(0); i < fn.Count; i++ {
 		featureArray[i] = lastNum
