@@ -1,7 +1,6 @@
 package rbf
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
