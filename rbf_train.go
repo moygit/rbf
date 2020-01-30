@@ -135,23 +135,28 @@ func (tree *RandomBinaryTree) calculateOneNode(featureArray [][]byte,
 // Get a random subset of features, find the best one of those features, and split this set of nodes
 // on that feature.
 func splitNode(featureArray [][]byte, rowIndex []int32, numFeatures, numFeaturesToCompare, indexStart, indexEnd int32) (int32, byte, int32) {
-	featureSubset, featureFrequencies, featureWeightedTotals :=
-		selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, numFeatures, numFeaturesToCompare, indexStart, indexEnd)
-	bestFeatureIndex, bestFeatureSplitValue := getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
-	bestFeatureNum := featureSubset[bestFeatureIndex]
-	indexSplit := quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
+	featuresAlreadySelected := make([]bool, numFeatures)
+	indexSplit := indexStart
+	var bestFeatureNum, bestFeatureIndex int32
+	var bestFeatureSplitValue byte
+	for attemptNum := 0; attemptNum < 3 && (indexSplit == indexStart || indexSplit == indexEnd); attemptNum++ {
+		featureSubset, featureFrequencies, featureWeightedTotals :=
+			selectRandomFeaturesAndGetFrequencies(featureArray, rowIndex, featuresAlreadySelected, numFeatures, numFeaturesToCompare, indexStart, indexEnd)
+		bestFeatureIndex, bestFeatureSplitValue = getSimpleBestFeature(featureFrequencies, featureWeightedTotals, indexEnd-indexStart)
+		bestFeatureNum = featureSubset[bestFeatureIndex]
+		indexSplit = quickPartition(rowIndex, featureArray, indexStart, indexEnd, bestFeatureNum, bestFeatureSplitValue)
+	}
 	return bestFeatureNum, bestFeatureSplitValue, indexSplit
 }
 
 // Select a random subset of features and get the frequencies for those features.
-func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int32,
+func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int32, featuresAlreadySelected []bool,
 	numFeatures, numFeaturesToCompare, indexStart, indexEnd int32) ([]int32, [][]int32, []int32) {
 	featureSubset := make([]int32, numFeaturesToCompare)
 	featureFrequencies := make([][]int32, numFeaturesToCompare)
 	featureWeightedTotals := make([]int32, numFeaturesToCompare)
 
 	var featureNum int32
-	featuresAlreadySelected := make([]bool, numFeatures)
 	for i := int32(0); i < numFeaturesToCompare; i++ {
 		// get one that isn't already selected:
 		for featureNum = rand.Int31n(numFeatures); featuresAlreadySelected[featureNum]; featureNum = rand.Int31n(numFeatures) {
