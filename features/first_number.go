@@ -15,6 +15,8 @@ import (
 // Provide FeatureSetConfig
 var DefaultFirstNumber FirstNumber
 
+const first_number_default_count = 20
+
 type FirstNumber struct {
 	Count byte
 }
@@ -41,9 +43,11 @@ func deserializeFirstNumberMap(confMap map[string]string) (config FeatureSetConf
 	if countStr, ok := confMap["count"]; ok {
 		if count, err := strconv.Atoi(countStr); err == nil {
 			return FirstNumber{byte(count)}, true
+		} else {
+			return nil, false
 		}
 	}
-	return nil, false
+	return FirstNumber{byte(first_number_default_count)}, true
 }
 
 func deserialize_first_number(reader io.Reader) FeatureSetConfig {

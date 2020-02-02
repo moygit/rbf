@@ -82,9 +82,11 @@ func deserializeFollowgramsMap(confMap map[string]string) (config FeatureSetConf
 	if windowSizeStr, ok := confMap["window_size"]; ok {
 		if windowSize, err := strconv.Atoi(windowSizeStr); err == nil {
 			return Followgrams{int(windowSize)}, true
+		} else {
+			return nil, false
 		}
 	}
-	return nil, false
+	return Followgrams{followgram_default_window_size}, true
 }
 
 func deserialize_followgrams(reader io.Reader) FeatureSetConfig {

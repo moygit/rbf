@@ -187,14 +187,6 @@ func deserializeMap(confMap map[string]string) (config FeatureSetConfig) {
 	return
 }
 
-// func NewFeatureCalculationFunctionsFromConfig(config string) (func(string) []byte, func([]string) [][]byte) {
-//     // get an array of feature-set-config
-//     // use that to make functions
-//
-//     featureSetConfigs = make([]FeatureSetConfig)
-//     return MakeFeatureCalculationFunctions(featureSetConfigs)
-// }
-
 func deserialize(reader io.Reader) FeatureSetConfig {
 	var typeIdentifier int32
 	binary.Read(reader, binary.LittleEndian, &typeIdentifier)

@@ -91,27 +91,22 @@ func TestReadSerializedConfigWithUnknownType(t *testing.T) {
 	getConfigsFromYaml(featureConfig)
 }
 
-func TestReadSerializedConfigWithBadValues(t *testing.T) {
-	featureConfig := "- feature_type: first_number\n  val1: v1\n  val2: v2\n"
-	defer catchPanicOrElse(t, "Missing field (count) in first_number deserialization should have failed but didn't")
-	getConfigsFromYaml(featureConfig)
-}
-
 func TestReadSerializedConfigFromString(t *testing.T) {
 	// given
-	expectedCount := 5
+	expectedCount := 6
 	featureConfig := `
 - feature_type: first_number
-  count: 17
+  count: "17"   # w/ quotes here, w/o below; both should work
 - feature_type: last_number
-  count: 18
+  # just use default count
 - feature_type: followgrams
   window_size: 3
 - feature_type: bigrams
   allow_repeats: true
 - feature_type: occurrence_positions
   direction_is_head: true
-  num_occurrences: "5"
+  num_occurrences: 5
+- feature_type: followgrams
 `
 	// when
 	configs := getConfigsFromYaml(featureConfig)
@@ -122,8 +117,8 @@ func TestReadSerializedConfigFromString(t *testing.T) {
 	if f, ok := configs[0].(FirstNumber); !ok || f.Count != 17 {
 		t.Errorf("expected configs[0] (%v) to be FirstNumber{17}", configs[0])
 	}
-	if f, ok := configs[1].(LastNumber); !ok || f.Count != 18 {
-		t.Errorf("expected configs[1] (%v) to be LastNumber{18}", configs[1])
+	if f, ok := configs[1].(LastNumber); !ok || f.Count != last_number_default_count {
+		t.Errorf("expected configs[1] (%v) to be LastNumber{%d}", configs[1], last_number_default_count)
 	}
 	if f, ok := configs[2].(Followgrams); !ok || f.WindowSize != 3 {
 		t.Errorf("expected configs[2] (%v) to be Followgrams{3}", configs[2])
@@ -133,5 +128,8 @@ func TestReadSerializedConfigFromString(t *testing.T) {
 	}
 	if f, ok := configs[4].(OccurrencePositions); !ok || !f.DirectionIsHead || f.NumberOfOccurrences != 5 {
 		t.Errorf("expected configs[4] (%v) to be OccurrencePositions{true, 5}", configs[4])
+	}
+	if f, ok := configs[5].(Followgrams); !ok || f.WindowSize != followgram_default_window_size {
+		t.Errorf("expected configs[5] (%v) to be Followgrams{%d}", configs[5], followgram_default_window_size)
 	}
 }

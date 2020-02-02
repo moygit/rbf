@@ -13,6 +13,8 @@ import (
 
 //----------------------------------------------------------------------------------------------------
 // Provide FeatureSetConfig
+const last_number_default_count = 10
+
 var DefaultLastNumber LastNumber
 
 type LastNumber struct {
@@ -41,9 +43,11 @@ func deserializeLastNumberMap(confMap map[string]string) (config FeatureSetConfi
 	if countStr, ok := confMap["count"]; ok {
 		if count, err := strconv.Atoi(countStr); err == nil {
 			return LastNumber{byte(count)}, true
+		} else {
+			return nil, false
 		}
 	}
-	return nil, false
+	return LastNumber{byte(last_number_default_count)}, true
 }
 
 func deserialize_last_number(reader io.Reader) FeatureSetConfig {
