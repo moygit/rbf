@@ -5,55 +5,38 @@ package features
 // (poor man's weighting).
 
 import (
-	"encoding/binary"
-	"io"
 	"strconv"
 	"strings"
 )
 
 //----------------------------------------------------------------------------------------------------
-// Provide FeatureSetConfig
+// Provide featureSetConfig
 const last_number_default_count = 10
 
-var DefaultLastNumber LastNumber
-
-type LastNumber struct {
+type lastNumber struct {
 	Count byte
 }
 
-func (fn LastNumber) Size() int32 {
+func (fn lastNumber) Size() int32 {
 	return int32(fn.Count)
 }
 
-func (fn LastNumber) FromStringInPlace(input string, featureArray []byte) {
+func (fn lastNumber) FromStringInPlace(input string, featureArray []byte) {
 	lastNum := GetLastNumber(input)
 	for i := byte(0); i < fn.Count; i++ {
 		featureArray[i] = lastNum
 	}
 }
 
-const last_number_type = int32(12)
-
-func (ln LastNumber) Serialize(writer io.Writer) {
-	binary.Write(writer, binary.LittleEndian, last_number_type)
-	binary.Write(writer, binary.LittleEndian, int32(ln.Count))
-}
-
-func deserializeLastNumberMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+func deserializeLastNumberMap(confMap map[string]string) (config featureSetConfig, ok bool) {
 	if countStr, ok := confMap["count"]; ok {
 		if count, err := strconv.Atoi(countStr); err == nil {
-			return LastNumber{byte(count)}, true
+			return lastNumber{byte(count)}, true
 		} else {
 			return nil, false
 		}
 	}
-	return LastNumber{byte(last_number_default_count)}, true
-}
-
-func deserialize_last_number(reader io.Reader) FeatureSetConfig {
-	var count int32
-	binary.Read(reader, binary.LittleEndian, &count)
-	return LastNumber{byte(count)}
+	return lastNumber{byte(last_number_default_count)}, true
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -129,8 +112,4 @@ func GetLastNumberAsString(input string) string {
 	}
 	// if the number was at the (left) end of the string
 	return reverse(num)
-}
-
-func init() {
-	DefaultLastNumber = LastNumber{10}
 }

@@ -23,11 +23,7 @@ package features
 //   yield poor results in our use-case. So we'll use smaller followgram windows (say 5-followgrams) as
 //   a proxy for using n>2-grams (say 6-grams).
 
-import (
-	"encoding/binary"
-	"io"
-	"strconv"
-)
+import "strconv"
 
 const followgram_default_window_size = 5
 const max_followgram_count = 255
@@ -35,18 +31,16 @@ const max_followgram_count = 255
 var num_followgrams int
 
 //----------------------------------------------------------------------------------------------------
-// Provide FeatureSetConfig
-var DefaultFollowgrams Followgrams
-
-type Followgrams struct {
+// Provide featureSetConfig
+type followgrams struct {
 	WindowSize int
 }
 
-func (f Followgrams) Size() int32 {
+func (f followgrams) Size() int32 {
 	return int32(num_followgrams)
 }
 
-func (f Followgrams) FromStringInPlace(input string, featureArray []byte) {
+func (f followgrams) FromStringInPlace(input string, featureArray []byte) {
 	sNormalized := normalizeString(input)
 	sNormalizedLen := len(sNormalized)
 
@@ -71,38 +65,24 @@ func (f Followgrams) FromStringInPlace(input string, featureArray []byte) {
 	}
 }
 
-const followgrams_type = int32(1)
-
-func (f Followgrams) Serialize(writer io.Writer) {
-	binary.Write(writer, binary.LittleEndian, followgrams_type)
-	binary.Write(writer, binary.LittleEndian, int32(f.WindowSize))
-}
-
-func deserializeFollowgramsMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+func deserializeFollowgramsMap(confMap map[string]string) (config featureSetConfig, ok bool) {
 	if windowSizeStr, ok := confMap["window_size"]; ok {
 		if windowSize, err := strconv.Atoi(windowSizeStr); err == nil {
-			return Followgrams{int(windowSize)}, true
+			return followgrams{int(windowSize)}, true
 		} else {
 			return nil, false
 		}
 	}
-	return Followgrams{followgram_default_window_size}, true
-}
-
-func deserialize_followgrams(reader io.Reader) FeatureSetConfig {
-	var windowSize int32
-	binary.Read(reader, binary.LittleEndian, &windowSize)
-	return Followgrams{int(windowSize)}
+	return followgrams{followgram_default_window_size}, true
 }
 
 //----------------------------------------------------------------------------------------------------
 
 func init() {
-	DefaultFollowgrams = Followgrams{followgram_default_window_size}
 	num_followgrams = alphabet_size * alphabet_size
 }
 
-func (f Followgrams) fromString(input string) []byte {
+func (f followgrams) fromString(input string) []byte {
 	featureArray := make([]byte, num_followgrams)
 	f.FromStringInPlace(input, featureArray)
 	return featureArray

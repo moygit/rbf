@@ -12,7 +12,7 @@ func TestFeatureSetConfig(t *testing.T) {
 - feature_type: followgrams
   window_size: 3
 `
-	calculateFeatures, _ := NewFeatureCalculationFunctionsFromConfig(featureSetConfigStr)
+	calculateFeatures, _ := GetFeatureCalcFuncs(featureSetConfigStr)
 	followgrams := calculateFeatures("abcdefgh")
 
 	// then:
@@ -60,7 +60,7 @@ func TestFeatureSetConfig(t *testing.T) {
 - feature_type: followgrams
   window_size: 6
 `
-	calculateFeatures, _ = NewFeatureCalculationFunctionsFromConfig(featureSetConfigStr)
+	calculateFeatures, _ = GetFeatureCalcFuncs(featureSetConfigStr)
 	followgrams = calculateFeatures("aaaaaaaa")
 
 	// then:
@@ -112,24 +112,24 @@ func TestReadSerializedConfigFromString(t *testing.T) {
 	configs := getConfigsFromYaml(featureConfig)
 	// then
 	if count := len(configs); count != expectedCount {
-		t.Errorf("deserialized FeatureSetConfigs slice [%v] should have contained %d values but instead contains %d", configs, expectedCount, count)
+		t.Errorf("deserialized featureSetConfigs slice [%v] should have contained %d values but instead contains %d", configs, expectedCount, count)
 	}
-	if f, ok := configs[0].(FirstNumber); !ok || f.Count != 17 {
-		t.Errorf("expected configs[0] (%v) to be FirstNumber{17}", configs[0])
+	if f, ok := configs[0].(firstNumber); !ok || f.Count != 17 {
+		t.Errorf("expected configs[0] (%v) to be firstNumber{17}", configs[0])
 	}
-	if f, ok := configs[1].(LastNumber); !ok || f.Count != last_number_default_count {
-		t.Errorf("expected configs[1] (%v) to be LastNumber{%d}", configs[1], last_number_default_count)
+	if f, ok := configs[1].(lastNumber); !ok || f.Count != last_number_default_count {
+		t.Errorf("expected configs[1] (%v) to be lastNumber{%d}", configs[1], last_number_default_count)
 	}
-	if f, ok := configs[2].(Followgrams); !ok || f.WindowSize != 3 {
-		t.Errorf("expected configs[2] (%v) to be Followgrams{3}", configs[2])
+	if f, ok := configs[2].(followgrams); !ok || f.WindowSize != 3 {
+		t.Errorf("expected configs[2] (%v) to be followgrams{3}", configs[2])
 	}
-	if f, ok := configs[3].(Bigrams); !ok || !f.AllowRepeats || f.maxBigramCount != 255 {
-		t.Errorf("expected configs[3] (%v) to be Bigrams{true, 255}", configs[3])
+	if f, ok := configs[3].(bigrams); !ok || f.maxBigramCount != 255 {
+		t.Errorf("expected configs[3] (%v) to be bigrams{255}", configs[3])
 	}
-	if f, ok := configs[4].(OccurrencePositions); !ok || !f.DirectionIsHead || f.NumberOfOccurrences != 5 {
-		t.Errorf("expected configs[4] (%v) to be OccurrencePositions{true, 5}", configs[4])
+	if f, ok := configs[4].(occurrencePositions); !ok || !f.DirectionIsHead || f.NumberOfOccurrences != 5 {
+		t.Errorf("expected configs[4] (%v) to be occurrencePositions{true, 5}", configs[4])
 	}
-	if f, ok := configs[5].(Followgrams); !ok || f.WindowSize != followgram_default_window_size {
-		t.Errorf("expected configs[5] (%v) to be Followgrams{%d}", configs[5], followgram_default_window_size)
+	if f, ok := configs[5].(followgrams); !ok || f.WindowSize != followgram_default_window_size {
+		t.Errorf("expected configs[5] (%v) to be followgrams{%d}", configs[5], followgram_default_window_size)
 	}
 }

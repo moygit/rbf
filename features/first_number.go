@@ -5,55 +5,38 @@ package features
 // (poor man's weighting).
 
 import (
-	"encoding/binary"
-	"io"
 	"strconv"
 	"strings"
 )
 
-//----------------------------------------------------------------------------------------------------
-// Provide FeatureSetConfig
-var DefaultFirstNumber FirstNumber
-
 const first_number_default_count = 20
 
-type FirstNumber struct {
+type firstNumber struct {
 	Count byte
 }
 
-func (fn FirstNumber) Size() int32 {
+//----------------------------------------------------------------------------------------------------
+// Provide featureSetConfig
+func (fn firstNumber) Size() int32 {
 	return int32(fn.Count)
 }
 
-func (fn FirstNumber) FromStringInPlace(input string, featureArray []byte) {
+func (fn firstNumber) FromStringInPlace(input string, featureArray []byte) {
 	firstNum := GetFirstNumber(input)
 	for i := byte(0); i < fn.Count; i++ {
 		featureArray[i] = firstNum
 	}
 }
 
-const first_number_type = int32(11)
-
-func (fn FirstNumber) Serialize(writer io.Writer) {
-	binary.Write(writer, binary.LittleEndian, first_number_type)
-	binary.Write(writer, binary.LittleEndian, int32(fn.Count))
-}
-
-func deserializeFirstNumberMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+func deserializeFirstNumberMap(confMap map[string]string) (config featureSetConfig, ok bool) {
 	if countStr, ok := confMap["count"]; ok {
 		if count, err := strconv.Atoi(countStr); err == nil {
-			return FirstNumber{byte(count)}, true
+			return firstNumber{byte(count)}, true
 		} else {
 			return nil, false
 		}
 	}
-	return FirstNumber{byte(first_number_default_count)}, true
-}
-
-func deserialize_first_number(reader io.Reader) FeatureSetConfig {
-	var count int32
-	binary.Read(reader, binary.LittleEndian, &count)
-	return FirstNumber{byte(count)}
+	return firstNumber{byte(first_number_default_count)}, true
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -110,8 +93,4 @@ func GetFirstNumberAsString(input string) string {
 	}
 	// if the number was at the end of the string
 	return strings.TrimLeft(num.String(), "0")
-}
-
-func init() {
-	DefaultFirstNumber = FirstNumber{20}
 }

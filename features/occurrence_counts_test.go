@@ -8,8 +8,8 @@ import (
 
 func TestGetOccurrenceCounts(t *testing.T) {
 	// given:
-	o := OccurrenceCounts{2}
-	_, fromStringArray := MakeFeatureCalculationFunctions([]FeatureSetConfig{o})
+	o := occurrenceCounts{2}
+	_, fromStringArray := makeFeatureCalculationFunctions([]featureSetConfig{o})
 
 	// when:
 	occurrenceCounts := fromStringArray([]string{"", "aaabbcddd"})
@@ -33,8 +33,8 @@ func TestGetOccurrenceCounts(t *testing.T) {
 
 func TestGetLongOccurrenceCounts(t *testing.T) {
 	// given
-	o := OccurrenceCounts{1}
-	fromString, _ := MakeFeatureCalculationFunctions([]FeatureSetConfig{o})
+	o := occurrenceCounts{1}
+	fromString, _ := makeFeatureCalculationFunctions([]featureSetConfig{o})
 
 	// when:
 	occurrenceCounts := fromString(strings.Repeat("a", 400))

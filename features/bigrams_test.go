@@ -6,7 +6,7 @@ import (
 
 func TestGetBigramsWithRepeats(t *testing.T) {
 	// given:
-	b := BigramsWithRepeats
+	b := bigrams{maxBigramCount: 255}
 	// when:
 	blankBigrams := b.fromString("")
 	abcdBigrams := b.fromString("abcdabcdabcd")
@@ -28,7 +28,7 @@ func TestGetBigramsWithRepeats(t *testing.T) {
 
 func TestGetBigramsNoRepeats(t *testing.T) {
 	// given:
-	b := BigramsNoRepeats
+	b := bigrams{maxBigramCount: 1}
 	// when:
 	blankBigrams := b.fromString("")
 	abcdBigrams := b.fromString("abcdabcdabcd")

@@ -6,25 +6,19 @@ package features
 // NOTE: We allow the user to specify the number of times they want this feature repeated
 // (poor man's weighting).
 
-import (
-	"encoding/binary"
-	"io"
-	"strconv"
-)
+import "strconv"
 
 //----------------------------------------------------------------------------------------------------
-// Provide FeatureSetConfig
-var DefaultOccurrenceCounts OccurrenceCounts
-
-type OccurrenceCounts struct {
+// Provide featureSetConfig
+type occurrenceCounts struct {
 	Count byte
 }
 
-func (o OccurrenceCounts) Size() int32 {
+func (o occurrenceCounts) Size() int32 {
 	return int32(alphabet_size) * int32(o.Count)
 }
 
-func (o OccurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
+func (o occurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
 	sNormalized := []byte(normalizeString(input))
 	for _, ch := range sNormalized {
 		charIndex := char_map[ch]
@@ -37,30 +31,11 @@ func (o OccurrenceCounts) FromStringInPlace(input string, featureArray []byte) {
 	}
 }
 
-const occurrence_counts_type = int32(31)
-
-func (oc OccurrenceCounts) Serialize(writer io.Writer) {
-	binary.Write(writer, binary.LittleEndian, occurrence_counts_type)
-	binary.Write(writer, binary.LittleEndian, int32(oc.Count))
-}
-
-func deserializeOccurrenceCountsMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+func deserializeOccurrenceCountsMap(confMap map[string]string) (config featureSetConfig, ok bool) {
 	if countStr, ok := confMap["count"]; ok {
 		if count, err := strconv.Atoi(countStr); err == nil {
-			return OccurrenceCounts{byte(count)}, true
+			return occurrenceCounts{byte(count)}, true
 		}
 	}
 	return nil, false
-}
-
-func deserialize_occurrence_counts(reader io.Reader) FeatureSetConfig {
-	var count int32
-	binary.Read(reader, binary.LittleEndian, &count)
-	return OccurrenceCounts{byte(count)}
-}
-
-//----------------------------------------------------------------------------------------------------
-
-func init() {
-	DefaultOccurrenceCounts = OccurrenceCounts{2}
 }

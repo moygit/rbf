@@ -30,8 +30,8 @@ func TestGetLastNumberAsString(t *testing.T) {
 
 func TestGetLastNumberFeature(t *testing.T) {
 	// given:
-	fn := DefaultLastNumber
-	_, fromStringArray := MakeFeatureCalculationFunctions([]FeatureSetConfig{fn})
+	fn := lastNumber{10}
+	_, fromStringArray := makeFeatureCalculationFunctions([]featureSetConfig{fn})
 	strs := []string{"123 main st 789", "abcd 234 main st 678", "main st", "123 main st"}
 	expectedNums := []byte{789 % 256, 678 % 256, 0, 123}
 	// when:

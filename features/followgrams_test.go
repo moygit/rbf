@@ -4,41 +4,41 @@ import "testing"
 
 func TestGetFollowgrams(t *testing.T) {
 	// given:
-	f := Followgrams{3}
+	f := followgrams{3}
 	// when:
-	followgrams := f.fromString("abcdefgh")
+	grams := f.fromString("abcdefgh")
 	// then:
-	if !testSliceIsSingleValue(followgrams[1:4], byte(1)) || // a
-		!testSliceIsSingleValue(followgrams[39:42], byte(1)) || // b
-		!testSliceIsSingleValue(followgrams[77:80], byte(1)) || // c
-		!testSliceIsSingleValue(followgrams[115:118], byte(1)) || // d
-		!testSliceIsSingleValue(followgrams[153:156], byte(1)) || // e
-		!testSliceIsSingleValue(followgrams[191:193], byte(1)) || // f (only 2)
-		!testSliceIsSingleValue(followgrams[229:230], byte(1)) || // g (only 1)
+	if !testSliceIsSingleValue(grams[1:4], byte(1)) || // a
+		!testSliceIsSingleValue(grams[39:42], byte(1)) || // b
+		!testSliceIsSingleValue(grams[77:80], byte(1)) || // c
+		!testSliceIsSingleValue(grams[115:118], byte(1)) || // d
+		!testSliceIsSingleValue(grams[153:156], byte(1)) || // e
+		!testSliceIsSingleValue(grams[191:193], byte(1)) || // f (only 2)
+		!testSliceIsSingleValue(grams[229:230], byte(1)) || // g (only 1)
 		false {
 		t.Errorf("abcdefgh 3-followgrams are wrong :-(")
 	}
-	if !testSliceIsSingleValue(followgrams[0:1], byte(0)) || // before a
-		!testSliceIsSingleValue(followgrams[4:39], byte(0)) || // between a and b
-		!testSliceIsSingleValue(followgrams[42:77], byte(0)) || // between b and c
-		!testSliceIsSingleValue(followgrams[80:115], byte(0)) || // between c and d
-		!testSliceIsSingleValue(followgrams[118:153], byte(0)) || // between d and e
-		!testSliceIsSingleValue(followgrams[156:191], byte(0)) || // between e and f
-		!testSliceIsSingleValue(followgrams[193:229], byte(0)) || // between f and g
-		!testSliceIsSingleValue(followgrams[230:], byte(0)) || // after g
+	if !testSliceIsSingleValue(grams[0:1], byte(0)) || // before a
+		!testSliceIsSingleValue(grams[4:39], byte(0)) || // between a and b
+		!testSliceIsSingleValue(grams[42:77], byte(0)) || // between b and c
+		!testSliceIsSingleValue(grams[80:115], byte(0)) || // between c and d
+		!testSliceIsSingleValue(grams[118:153], byte(0)) || // between d and e
+		!testSliceIsSingleValue(grams[156:191], byte(0)) || // between e and f
+		!testSliceIsSingleValue(grams[193:229], byte(0)) || // between f and g
+		!testSliceIsSingleValue(grams[230:], byte(0)) || // after g
 		false {
 		t.Errorf("abcdefgh 3-followgrams are wrong :-(")
 	}
 
 	// given:
-	f = Followgrams{6}
+	f = followgrams{6}
 	// when:
-	followgrams = f.fromString("aaaaaaaa")
+	grams = f.fromString("aaaaaaaa")
 	// then:
-	if followgrams[0] != 27 {
-		t.Errorf("aa count is %d; expected %d", followgrams[0], 27)
+	if grams[0] != 27 {
+		t.Errorf("aa count is %d; expected %d", grams[0], 27)
 	}
-	if !testSliceIsSingleValue(followgrams[1:], byte(0)) {
+	if !testSliceIsSingleValue(grams[1:], byte(0)) {
 		t.Errorf("got non-zero count for some non-aa value")
 	}
 }

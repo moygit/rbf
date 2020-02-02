@@ -8,26 +8,20 @@ package features
 // we would have:
 //    firstOccurrences == [4, 3, 2, 1, 0, 255, 255, ...]
 
-import (
-	"encoding/binary"
-	"io"
-	"strconv"
-)
+import "strconv"
 
 //----------------------------------------------------------------------------------------------------
-// Provide FeatureSetConfig
-var DefaultOccurrencePositions OccurrencePositions
-
-type OccurrencePositions struct {
+// Provide featureSetConfig
+type occurrencePositions struct {
 	DirectionIsHead     bool
 	NumberOfOccurrences byte
 }
 
-func (o OccurrencePositions) Size() int32 {
+func (o occurrencePositions) Size() int32 {
 	return int32(alphabet_size) * int32(o.NumberOfOccurrences)
 }
 
-func (o OccurrencePositions) FromStringInPlace(input string, featureArray []byte) {
+func (o occurrencePositions) FromStringInPlace(input string, featureArray []byte) {
 	// trim string to max length
 	sNormalized := []byte(normalizeString(input))
 	sLength := len(sNormalized)
@@ -70,16 +64,7 @@ func (o OccurrencePositions) FromStringInPlace(input string, featureArray []byte
 	}
 }
 
-const occurrence_positions_type = int32(21)
-
-func (oc OccurrencePositions) Serialize(writer io.Writer) {
-	b2i := map[bool]int32{false: 0, true: 1}
-	binary.Write(writer, binary.LittleEndian, occurrence_positions_type)
-	binary.Write(writer, binary.LittleEndian, int32(b2i[oc.DirectionIsHead]))
-	binary.Write(writer, binary.LittleEndian, int32(oc.NumberOfOccurrences))
-}
-
-func deserializeOccurrencePositionsMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+func deserializeOccurrencePositionsMap(confMap map[string]string) (config featureSetConfig, ok bool) {
 	var directionIsHead bool
 	if directionIsHeadStr, ok := confMap["direction_is_head"]; !ok {
 		return nil, false
@@ -92,19 +77,6 @@ func deserializeOccurrencePositionsMap(confMap map[string]string) (config Featur
 	} else if numOccurrences, err := strconv.Atoi(numOccurrencesStr); err != nil {
 		return nil, false
 	} else {
-		return OccurrencePositions{directionIsHead, byte(numOccurrences)}, true
+		return occurrencePositions{directionIsHead, byte(numOccurrences)}, true
 	}
-}
-
-func deserialize_occurrence_positions(reader io.Reader) FeatureSetConfig {
-	var directionIsHead, numOccurrences int32
-	binary.Read(reader, binary.LittleEndian, &directionIsHead)
-	binary.Read(reader, binary.LittleEndian, &numOccurrences)
-	return OccurrencePositions{directionIsHead == 0, byte(numOccurrences)}
-}
-
-//----------------------------------------------------------------------------------------------------
-
-func init() {
-	DefaultOccurrencePositions = OccurrencePositions{true, 3}
 }
