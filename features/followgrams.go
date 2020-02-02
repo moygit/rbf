@@ -26,6 +26,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strconv"
 )
 
 const followgram_default_window_size = 5
@@ -75,6 +76,15 @@ const followgrams_type = int32(1)
 func (f Followgrams) Serialize(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, followgrams_type)
 	binary.Write(writer, binary.LittleEndian, int32(f.WindowSize))
+}
+
+func deserializeFollowgramsMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+	if windowSizeStr, ok := confMap["window_size"]; ok {
+		if windowSize, err := strconv.Atoi(windowSizeStr); err == nil {
+			return Followgrams{int(windowSize)}, true
+		}
+	}
+	return nil, false
 }
 
 func deserialize_followgrams(reader io.Reader) FeatureSetConfig {

@@ -6,6 +6,7 @@ import (
 )
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 "
+
 var alphabet_size int
 var char_map map[byte]int
 var non_alnum_pattern *regexp.Regexp

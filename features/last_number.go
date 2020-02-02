@@ -7,6 +7,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -34,6 +35,15 @@ const last_number_type = int32(12)
 func (ln LastNumber) Serialize(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, last_number_type)
 	binary.Write(writer, binary.LittleEndian, int32(ln.Count))
+}
+
+func deserializeLastNumberMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+	if countStr, ok := confMap["count"]; ok {
+		if count, err := strconv.Atoi(countStr); err == nil {
+			return LastNumber{byte(count)}, true
+		}
+	}
+	return nil, false
 }
 
 func deserialize_last_number(reader io.Reader) FeatureSetConfig {

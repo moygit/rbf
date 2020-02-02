@@ -11,6 +11,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strconv"
 )
 
 //----------------------------------------------------------------------------------------------------
@@ -76,6 +77,23 @@ func (oc OccurrencePositions) Serialize(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, occurrence_positions_type)
 	binary.Write(writer, binary.LittleEndian, int32(b2i[oc.DirectionIsHead]))
 	binary.Write(writer, binary.LittleEndian, int32(oc.NumberOfOccurrences))
+}
+
+func deserializeOccurrencePositionsMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+	var directionIsHead bool
+	if directionIsHeadStr, ok := confMap["direction_is_head"]; !ok {
+		return nil, false
+	} else {
+		directionIsHead = (directionIsHeadStr == "true")
+	}
+
+	if numOccurrencesStr, ok := confMap["num_occurrences"]; !ok {
+		return nil, false
+	} else if numOccurrences, err := strconv.Atoi(numOccurrencesStr); err != nil {
+		return nil, false
+	} else {
+		return OccurrencePositions{directionIsHead, byte(numOccurrences)}, true
+	}
 }
 
 func deserialize_occurrence_positions(reader io.Reader) FeatureSetConfig {

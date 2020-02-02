@@ -6,8 +6,13 @@ import (
 
 func TestFeatureSetConfig(t *testing.T) {
 	// given/when:
-	featureSetConfig := []FeatureSetConfig{Followgrams{3}, Followgrams{3}}
-	calculateFeatures, _ := MakeFeatureCalculationFunctions(featureSetConfig)
+	featureSetConfigStr := `
+- feature_type: followgrams
+  window_size: 3
+- feature_type: followgrams
+  window_size: 3
+`
+	calculateFeatures, _ := NewFeatureCalculationFunctionsFromConfig(featureSetConfigStr)
 	followgrams := calculateFeatures("abcdefgh")
 
 	// then:
@@ -49,8 +54,13 @@ func TestFeatureSetConfig(t *testing.T) {
 	}
 
 	// given/when:
-	featureSetConfig = []FeatureSetConfig{Followgrams{6}, Followgrams{6}}
-	calculateFeatures, _ = MakeFeatureCalculationFunctions(featureSetConfig)
+	featureSetConfigStr = `
+- feature_type: followgrams
+  window_size: 6
+- feature_type: followgrams
+  window_size: 6
+`
+	calculateFeatures, _ = NewFeatureCalculationFunctionsFromConfig(featureSetConfigStr)
 	followgrams = calculateFeatures("aaaaaaaa")
 
 	// then:
@@ -60,5 +70,68 @@ func TestFeatureSetConfig(t *testing.T) {
 	if !testSliceIsSingleValue(followgrams[1:num_followgrams], byte(0)) ||
 		!testSliceIsSingleValue(followgrams[num_followgrams+1:], byte(0)) {
 		t.Errorf("got non-zero count for some non-aa value")
+	}
+}
+
+func catchPanicOrElse(t *testing.T, msg string) {
+	if r := recover(); r == nil {
+		t.Errorf(msg)
+	}
+}
+
+func TestReadSerializedConfigFailsOnBadInput(t *testing.T) {
+	featureConfig := "- key: n1\n  val1: v1\n  val2: v2\n- key: n2\n  val3: 3\n  val4: 4\n"
+	defer catchPanicOrElse(t, "Config without key 'feature_type' should have panicked but didn't.")
+	getConfigsFromYaml(featureConfig)
+}
+
+func TestReadSerializedConfigWithUnknownType(t *testing.T) {
+	featureConfig := "- feature_type: unknown_type_should_cause_panic\n  val1: v1\n  val2: v2\n"
+	defer catchPanicOrElse(t, "Unknown feature type unknown_type_should_cause_panic did not panic")
+	getConfigsFromYaml(featureConfig)
+}
+
+func TestReadSerializedConfigWithBadValues(t *testing.T) {
+	featureConfig := "- feature_type: first_number\n  val1: v1\n  val2: v2\n"
+	defer catchPanicOrElse(t, "Missing field (count) in first_number deserialization should have failed but didn't")
+	getConfigsFromYaml(featureConfig)
+}
+
+func TestReadSerializedConfigFromString(t *testing.T) {
+	// given
+	expectedCount := 5
+	featureConfig := `
+- feature_type: first_number
+  count: 17
+- feature_type: last_number
+  count: 18
+- feature_type: followgrams
+  window_size: 3
+- feature_type: bigrams
+  allow_repeats: true
+- feature_type: occurrence_positions
+  direction_is_head: true
+  num_occurrences: "5"
+`
+	// when
+	configs := getConfigsFromYaml(featureConfig)
+	// then
+	if count := len(configs); count != expectedCount {
+		t.Errorf("deserialized FeatureSetConfigs slice [%v] should have contained %d values but instead contains %d", configs, expectedCount, count)
+	}
+	if f, ok := configs[0].(FirstNumber); !ok || f.Count != 17 {
+		t.Errorf("expected configs[0] (%v) to be FirstNumber{17}", configs[0])
+	}
+	if f, ok := configs[1].(LastNumber); !ok || f.Count != 18 {
+		t.Errorf("expected configs[1] (%v) to be LastNumber{18}", configs[1])
+	}
+	if f, ok := configs[2].(Followgrams); !ok || f.WindowSize != 3 {
+		t.Errorf("expected configs[2] (%v) to be Followgrams{3}", configs[2])
+	}
+	if f, ok := configs[3].(Bigrams); !ok || !f.AllowRepeats || f.maxBigramCount != 255 {
+		t.Errorf("expected configs[3] (%v) to be Bigrams{true, 255}", configs[3])
+	}
+	if f, ok := configs[4].(OccurrencePositions); !ok || !f.DirectionIsHead || f.NumberOfOccurrences != 5 {
+		t.Errorf("expected configs[4] (%v) to be OccurrencePositions{true, 5}", configs[4])
 	}
 }

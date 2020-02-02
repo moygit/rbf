@@ -19,6 +19,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"gopkg.in/yaml.v2"
+	"log"
 )
 
 type FeatureSetConfig interface {
@@ -129,6 +132,68 @@ func DeserializeArray(reader io.Reader) []FeatureSetConfig {
 	}
 	return features
 }
+
+func NewFeatureCalculationFunctionsFromConfig(confStr string) (func(string) []byte, func([]string) [][]byte) {
+	configs := getConfigsFromYaml(confStr)
+	return MakeFeatureCalculationFunctions(configs)
+}
+
+func getConfigsFromYaml(confStr string) (configs []FeatureSetConfig) {
+	confMaps := make([]map[string]string, 0, 256)
+	if err := yaml.Unmarshal([]byte(confStr), &confMaps); err != nil {
+		log.Panicf("Error in feature-set yaml config: %v", err)
+	}
+	configs = make([]FeatureSetConfig, 0, 256)
+	for _, confMap := range confMaps {
+		confMap := mapToLowercase(confMap)
+		configs = append(configs, deserializeMap(confMap))
+	}
+	return
+}
+
+func mapToLowercase(inMap map[string]string) (outMap map[string]string) {
+	outMap = make(map[string]string, len(inMap))
+	for key, val := range inMap {
+		outMap[strings.ToLower(key)] = strings.ToLower(val)
+	}
+	return
+}
+
+func deserializeMap(confMap map[string]string) (config FeatureSetConfig) {
+	var type_ string
+	var ok bool
+	if type_, ok = confMap["feature_type"]; !ok {
+		log.Panicf("Feature config in yaml does not contain key 'feature_type': %v", confMap)
+	}
+	switch type_ {
+	case "bigrams":
+		config, ok = deserializeBigramsMap(confMap)
+	case "followgrams":
+		config, ok = deserializeFollowgramsMap(confMap)
+	case "first_number":
+		config, ok = deserializeFirstNumberMap(confMap)
+	case "last_number":
+		config, ok = deserializeLastNumberMap(confMap)
+	case "occurrence_positions":
+		config, ok = deserializeOccurrencePositionsMap(confMap)
+	case "occurrence_counts":
+		config, ok = deserializeOccurrenceCountsMap(confMap)
+	default:
+		log.Panicf("Received unknown feature-set type identifier " + type_)
+	}
+	if !ok {
+		log.Panicf("Error deserializing feature-set config: %v", confMap)
+	}
+	return
+}
+
+// func NewFeatureCalculationFunctionsFromConfig(config string) (func(string) []byte, func([]string) [][]byte) {
+//     // get an array of feature-set-config
+//     // use that to make functions
+//
+//     featureSetConfigs = make([]FeatureSetConfig)
+//     return MakeFeatureCalculationFunctions(featureSetConfigs)
+// }
 
 func deserialize(reader io.Reader) FeatureSetConfig {
 	var typeIdentifier int32

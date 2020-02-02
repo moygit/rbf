@@ -7,6 +7,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -34,6 +35,15 @@ const first_number_type = int32(11)
 func (fn FirstNumber) Serialize(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, first_number_type)
 	binary.Write(writer, binary.LittleEndian, int32(fn.Count))
+}
+
+func deserializeFirstNumberMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+	if countStr, ok := confMap["count"]; ok {
+		if count, err := strconv.Atoi(countStr); err == nil {
+			return FirstNumber{byte(count)}, true
+		}
+	}
+	return nil, false
 }
 
 func deserialize_first_number(reader io.Reader) FeatureSetConfig {

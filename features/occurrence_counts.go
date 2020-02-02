@@ -9,6 +9,7 @@ package features
 import (
 	"encoding/binary"
 	"io"
+	"strconv"
 )
 
 //----------------------------------------------------------------------------------------------------
@@ -41,6 +42,15 @@ const occurrence_counts_type = int32(31)
 func (oc OccurrenceCounts) Serialize(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, occurrence_counts_type)
 	binary.Write(writer, binary.LittleEndian, int32(oc.Count))
+}
+
+func deserializeOccurrenceCountsMap(confMap map[string]string) (config FeatureSetConfig, ok bool) {
+	if countStr, ok := confMap["count"]; ok {
+		if count, err := strconv.Atoi(countStr); err == nil {
+			return OccurrenceCounts{byte(count)}, true
+		}
+	}
+	return nil, false
 }
 
 func deserialize_occurrence_counts(reader io.Reader) FeatureSetConfig {
