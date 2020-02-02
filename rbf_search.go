@@ -1,7 +1,22 @@
 package rbf
 
+// A "point" is a feature-array. Search for one point in this forest.
+// Return indices into the training feature-array (since the caller/wrapper might have
+// different things they want to do with this).
+func (forest RandomBinaryForest) FindPoint(queryPoint []byte) map[int32]bool {
+	// query each tree and get results (indices into training feature-array)
+	resultIndices := make(map[int32]bool)
+	for _, tree := range forest.Trees {
+		treeResultIndices := tree.findPoint(queryPoint)
+		for _, index := range treeResultIndices {
+			resultIndices[index] = true
+		}
+	}
+	return resultIndices
+}
+
 // A "point" is a feature-array. Search for one point in this tree.
-func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
+func (tree RandomBinaryTree) findPoint(queryPoint []byte) []int32 {
 	arrayPos := int32(0)
 	first := tree.treeFirst[arrayPos]
 	// the condition checks if it's an internal node (== 0) or a leaf (== -1):
@@ -18,19 +33,4 @@ func (tree RandomBinaryTree) FindPoint(queryPoint []byte) []int32 {
 	// found a leaf; get values and return
 	indexStart, indexEnd := high_bit_1^first, high_bit_1^tree.treeSecond[arrayPos]
 	return tree.rowIndex[indexStart:indexEnd]
-}
-
-// A "point" is a feature-array. Search for one point in this forest.
-// Return indices into the training feature-array (since the caller/wrapper might have
-// different things they want to do with this).
-func (forest RandomBinaryForest) FindPoint(queryPoint []byte) map[int32]bool {
-	// query each tree and get results (indices into training feature-array)
-	resultIndices := make(map[int32]bool)
-	for _, tree := range forest.Trees {
-		treeResultIndices := tree.FindPoint(queryPoint)
-		for _, index := range treeResultIndices {
-			resultIndices[index] = true
-		}
-	}
-	return resultIndices
 }

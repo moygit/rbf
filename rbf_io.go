@@ -7,6 +7,7 @@ import (
 	"unsafe"
 )
 
+const sizeof_int32 = 4 // bytes
 //######################################################################################################################
 // Read/write int slices UNSAFELY.
 //######################################################################################################################
@@ -15,7 +16,6 @@ import (
 // a byte slice with bufio.Writer.Read(...) and then unsafely converting it to an int slice.
 // Writing unsafely is "only" an order of magnitude faster.
 // Conversion code h/t: https://stackoverflow.com/questions/11924196/convert-between-slices-of-different-types
-const sizeof_int32 = 4 // bytes
 func unsafelyReadIntSlice(reader io.Reader, int32sToRead int32) []int32 {
 	// Read bytes from reader
 	bytesToRead := 4 * int32sToRead

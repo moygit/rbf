@@ -1,5 +1,3 @@
-package rbf
-
 // A "random binary forest" is a hybrid between kd-trees and random forests.
 // For nearest neighbors this ends up being similar to Minhash Forests and to
 // Spotify's annoy library.
@@ -20,6 +18,7 @@ package rbf
 //
 // We have another split function that takes variance into account, but this is
 // currently unused.
+package rbf
 
 import (
 	"fmt"

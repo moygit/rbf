@@ -1,5 +1,3 @@
-package features
-
 // Interface for different types of features.
 //
 // Example usage:
@@ -22,6 +20,7 @@ package features
 //   featuresArray := calculateFeaturesForArray([]string{"abcd", "efgh"})
 //   // featuresArray[0] contains followgrams, first-number features, and last-number features for "abcd"
 //   // featuresArray[1] contains followgrams, first-number features, and last-number features for "efgh"
+package features
 
 import (
 	"regexp"
@@ -31,10 +30,16 @@ import (
 	"log"
 )
 
+// Given a feature-set config string, get functions that calculate the specified features for an input string.
+// Two functions are returned, one to calculate features for a single string, and a second to calculate features
+// for an array of strings. See package godoc for example usage.
 func GetFeatureCalcFuncs(confStr string) (func(string) []byte, func([]string) [][]byte) {
 	configs := getConfigsFromYaml(confStr)
 	return makeFeatureCalculationFunctions(configs)
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+// All code below is private.
 
 type featureSetConfig interface {
 	// can't just use an int here because we want to serialize this
