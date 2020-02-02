@@ -3,9 +3,10 @@ package rbf
 type RandomBinaryTree struct {
 	// We have arrays of arrays of features. Instead of expensively moving those rows around when
 	// sorting and partitioning we have an index into those and move the index elements around.
-	// Lookups will be slightly more slower but we'll save time overall.
+	// Lookups will be slightly slower but we'll save time overall.
 	rowIndex []int32
 
+    // Ugliness alert:
 	// Each tree node is a pair. For speed and space efficiency we'll store the tree in 2 arrays
 	// using the standard trick for storing a binary tree in an array (with indexing starting at 0,
 	// left child of n goes in 2n+1, right child goes in 2n+2). The pairs are either:
@@ -31,7 +32,7 @@ type RandomBinaryForest struct {
 // See comments above (in RandomBinaryTree definition) on ugly bit arithmetic for speed
 const high_bit = 31 // low bit is 0, high bit is 31 because we're using int32s
 const high_bit_1 = int32(-1) << high_bit
-const max_feature_value = 255 // openaddresses data has max followgram count ~200
+const max_feature_value = 255
 
 // It helps to have test values accessible from wrappers and sub-packages,
 // so these need to be defined here.

@@ -1,20 +1,25 @@
 package rbf
 
 // A "random binary forest" is a hybrid between kd-trees and random forests.
+// For nearest neighbors this ends up being similar to Minhash Forests and to
+// Spotify's annoy library.
 //
-// We build an ensemble of roughly-binary search trees, with each tree being built as
-// follows: pick a random subset of features at each split, look for the "best"
-// feature, split on that feature, and then recurse.
+// We build an ensemble of roughly-binary search trees, with each tree being
+// built as follows: pick a random subset of features at each split, look for
+// the "best" feature, split on that feature, and then recurse.
 //
-// For nearest-neighbor problems I've found that this performs significantly better
-// than kd-trees (roughly as much better than plain kd-trees as random forests are
-// better than plain decision-trees).
+// We want the split to be close to the median for the best search speeds (as
+// this will give us trees that are almost binary), but we want to maximize
+// variance for accuracy-optimization (e.g. if we have two features
+// A = [5, 5, 5, 6, 6, 6] and B = [0, 0, 0, 10, 10, 10], then we want to choose
+// B so that noisy data is less likely to fall on the wrong side of the split).
 //
-// It's theoretically similar to a minhash except that the set of hashes is different
-// for different subsets of input strings. If a node has two children then the node
-// represents one hash, and the two children represent different hashes for different
-// subsets of the input. The advantage over minhashes is that it's easier to have
-// different *types* of features with an RBF than with a minhash.
+// These two goals can conflict, so right now we just use a simple split
+// function that splits closest to the median. This has the added advantage that
+// you don't need to normalize features to have similar distributions.
+//
+// We have another split function that takes variance into account, but this is
+// currently unused.
 
 import (
 	"fmt"
@@ -169,9 +174,8 @@ func selectRandomFeaturesAndGetFrequencies(featureArray [][]byte, rowIndex []int
 	return featureSubset, featureFrequencies, featureWeightedTotals
 }
 
-// Convert a feature column into bins. Since our features are integers in the range [0, 255]
-// (actually roughly [0, 200]), statistics will be faster this way. The k-skip bigrams for the
-// reference openaddresses dataset are all below 255, so we use 8 bits.
+// Convert a feature column into bins. Since our features are integers in the range [0, 255],
+// statistics will be faster this way.
 // Returns: for feature `feature_num`:
 // - the frequency of each integer value in [0, 255]
 // - the sum of all feature values (i.e. the weighted sum over the frequency array)
@@ -191,10 +195,10 @@ func getSingleFeatureFrequencies(rowIndex []int32, featureArray [][]byte, featur
 	// - This is all assuming it's a binary tree, which is obviously very approximate.
 	// Calculations:
 	// - additions inside loop:
-	//   \\sum_{k=0}^{n-4} numNodes x numAdditions = \\sum_{k=0}^{n-4} 2^k 2^{n-k} = (n-3) * 2^n = n 2^n - 3 * 2^n
+	//   \\sum_{k=0}^{n-4} numNodes x numAdditions = \\sum_{k=0}^{n-4} 2^k 2^{n-k} = (n-3) * 2^n
 	// - 2 x 256 = 2^9 multiplications and additions on the counts list later:
 	//   \\sum_{k=0}^{n-4} numNodes x 2 x 256 = \\sum_{k=0}^{n-4} 2^k 2^9 = 2^9 * (2^(n-3) - 1) = 2^6 2^n - 2^9
-	// For our datasets n is around 25, so for the full tree it's almost always faster
+	// For our datasets n is 25-30, so for the full tree it's roughly a wash, maybe slightly faster
 	// to do them inside the above loop.
 }
 
