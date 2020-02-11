@@ -6,7 +6,7 @@ type RandomBinaryTree struct {
 	// Lookups will be slightly slower but we'll save time overall.
 	rowIndex []int32
 
-    // Ugliness alert:
+	// Ugliness alert:
 	// Each tree node is a pair. For speed and space efficiency we'll store the tree in 2 arrays
 	// using the standard trick for storing a binary tree in an array (with indexing starting at 0,
 	// left child of n goes in 2n+1, right child goes in 2n+2). The pairs are either:

@@ -8,7 +8,10 @@ package strings
 // substrings in time O(m+n). "Best" here just means that they have mostly
 // the same letters (above some threshold) as the reference string.
 
-import "math"
+import (
+	"math"
+	gostrings "strings"
+)
 
 const match_float_threshold = 0.67
 
@@ -18,14 +21,14 @@ const match_float_threshold = 0.67
 func GetBestMatchPositions(origReference, origQuery string) []int {
 	intersectionTracker := make([]int, 0)
 
-	reference := []byte(LowercaseAndSpaceSpecialChars(origReference))
-	query := []byte(LowercaseAndSpaceSpecialChars(origQuery))
+	reference := []byte(ConvertSpecialCharsToSpace(gostrings.ToLower(origReference)))
+	query := []byte(ConvertSpecialCharsToSpace(gostrings.ToLower(origQuery)))
 	refCounts := getCounts(reference)
 
 	lenRef := len(reference)
 	// doing the 0th iteration of the loop outside b/c there's no dropChar/addChar-handling:
 	startPos := 0
-	endPos := min(len(query), lenRef)
+	endPos := min2i(len(query), lenRef)
 	windowCounts := getCounts(query[:endPos])
 	intersection := getIntersection(refCounts, windowCounts)
 	intersectionTracker = append(intersectionTracker, intersection)
@@ -64,7 +67,7 @@ func getLocalMaximaAboveThreshold(arr []int, threshold int) []int {
 func getIntersection(refCounts, queryCounts []int) int {
 	intersection := 0
 	for i := 0; i < len(refCounts); i++ {
-		intersection += min(refCounts[i], queryCounts[i])
+		intersection += min2i(refCounts[i], queryCounts[i])
 	}
 	return intersection
 }
@@ -75,6 +78,13 @@ func getCounts(s []byte) []int {
 		counts[char_map[ch]] += 1
 	}
 	return counts
+}
+
+func min2i(i, j int) int {
+	if i < j {
+		return i
+	}
+	return j
 }
 
 func min(x ...int) int {

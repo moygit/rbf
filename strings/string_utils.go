@@ -22,12 +22,12 @@ func init() {
 	non_alnum_pattern = regexp.MustCompile("[^a-z0-9]+")
 }
 
-func LowercaseAndRemoveSpecialChars(s string) string {
-	return non_alnum_pattern.ReplaceAllLiteralString(strings.ToLower(s), "")
+func RemoveSpecialChars(s string) string {
+	return strings.TrimSpace(non_alnum_pattern.ReplaceAllLiteralString(s, ""))
 }
 
-func LowercaseAndSpaceSpecialChars(s string) string {
-	return non_alnum_pattern.ReplaceAllLiteralString(strings.ToLower(s), " ")
+func ConvertSpecialCharsToSpace(s string) string {
+	return non_alnum_pattern.ReplaceAllLiteralString(s, " ")
 }
 
 // Experimental and inefficient, not in use right now and will likely be removed.
