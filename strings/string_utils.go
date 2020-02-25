@@ -10,6 +10,7 @@ const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 "
 var alphabet_size int
 var char_map map[byte]int
 var non_alnum_pattern *regexp.Regexp
+var sp_char_pattern *regexp.Regexp
 
 func init() {
 	alphabet_size = len(alphabet)
@@ -20,10 +21,11 @@ func init() {
 	}
 
 	non_alnum_pattern = regexp.MustCompile("[^a-z0-9]+")
+	sp_char_pattern = regexp.MustCompile("[^a-z0-9 ]+")
 }
 
 func RemoveSpecialChars(s string) string {
-	return strings.TrimSpace(non_alnum_pattern.ReplaceAllLiteralString(s, ""))
+	return strings.TrimSpace(sp_char_pattern.ReplaceAllLiteralString(s, ""))
 }
 
 func ConvertSpecialCharsToSpace(s string) string {
