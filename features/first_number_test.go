@@ -7,10 +7,10 @@ func TestGetFirstNumber(t *testing.T) {
 	strs := []string{"123 main st 789", "1st st 456 789", "abcd 234 main st 789", "main st", "main st 345"}
 	expectedNums := []byte{123, 456 % 256, 234, 0, 345 % 256}
 	// when/then:
-	for i := 0; i < 4; i++ {
-		n := GetFirstNumber(strs[i])
+	for i, str := range strs {
+		n := GetFirstNumber(str)
 		if n != expectedNums[i] {
-			t.Errorf("bad first-num %d for string %s, expected %d\n", n, strs[i], expectedNums[i])
+			t.Errorf("bad first-num %d for string %s, expected %d\n", n, str, expectedNums[i])
 		}
 	}
 }
@@ -20,10 +20,10 @@ func TestGetFirstNumberAsString(t *testing.T) {
 	strs := []string{"000123 main st 789", "1st st 456 789", "abcd 234 main st 789", "main st", "main st 345"}
 	expectedNums := []string{"123", "456", "234", "", "345"}
 	// when/then:
-	for i := 0; i < 4; i++ {
-		n := GetFirstNumberAsString(strs[i])
+	for i, str := range strs {
+		n := GetFirstNumberAsString(str)
 		if n != expectedNums[i] {
-			t.Errorf("bad first-num %s for string %s, expected %s\n", n, strs[i], expectedNums[i])
+			t.Errorf("bad first-num %s for string %s, expected %s\n", n, str, expectedNums[i])
 		}
 	}
 }
@@ -32,15 +32,15 @@ func TestGetFirstNumberFeature(t *testing.T) {
 	// given:
 	fn := firstNumber{20}
 	_, fromStringArray := makeFeatureCalculationFunctions([]featureSetConfig{fn})
-	strs := []string{"123 main st 789", "abcd 234 main st 789", "main st", "main st 345"}
-	expectedNums := []byte{123, 234, 0, 345 % 256}
+	strs := []string{"123 main st 789", "1st st 456 789", "abcd 234 main st 789", "main st", "main st 345"}
+	expectedNums := []byte{123, 456 % 256, 234, 0, 345 % 256}
 	// when:
 	featureArray := fromStringArray(strs)
 	// then:
-	for i := 0; i < 4; i++ {
+	for i, str := range strs {
 		if !testSliceIsSingleValue(featureArray[i], expectedNums[i]) {
 			n := expectedNums[i]
-			t.Errorf("bad feature-array for string %s, expected [%d, %d, %d], got %v\n", strs[i], n, n, n, featureArray[i])
+			t.Errorf("bad feature-array for string %s, expected [%d, %d, %d], got %v\n", str, n, n, n, featureArray[i])
 		}
 	}
 }
