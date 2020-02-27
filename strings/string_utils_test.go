@@ -19,31 +19,30 @@ const s3 = "e r lr sdi a1eihp0 c0175ieur"       // permutation of s0, don't want
 const t0 = "06 louxembourg paris 75006 fr"
 const t1 = "96 rue beaubourg paris 75003 fr"
 
-func TestRemoveSpecialChars(t *testing.T) {
-	testOneCase := func(s, expS string) {
-		convertedS := RemoveSpecialChars(s)
-		if convertedS != expS {
-			t.Errorf("RemoveSpecialChars([%s]) == [%s]; expected [%s]", s, convertedS, expS)
-		}
-	}
+func testOneCase(s, expS, fName string, f func(string)string, t *testing.T) {
+    convertedS := f(s)
+    if convertedS != expS {
+        t.Errorf("%s([%s]) == [%s]; expected [%s]", fName, s, convertedS, expS)
+    }
+}
 
-	testOneCase("#", "")
-	testOneCase("#abcd$efgh%", "abcdefgh")
-	testOneCase("#abcd efgh%", "abcd efgh")
-	testOneCase("abcd", "abcd")
+func TestRemoveSpaces(t *testing.T) {
+	testOneCase("", "", "RemoveSpaces", RemoveSpaces, t)
+	testOneCase("  ", "", "RemoveSpaces", RemoveSpaces, t)
+	testOneCase(" abcd  efgh ", "abcdefgh", "RemoveSpaces", RemoveSpaces, t)
+}
+
+func TestRemoveSpecialChars(t *testing.T) {
+	testOneCase("#", "", "RemoveSpecialChars", RemoveSpecialChars, t)
+	testOneCase("#abcd$efgh%", "abcdefgh", "RemoveSpecialChars", RemoveSpecialChars, t)
+	testOneCase("#abcd efgh%", "abcd efgh", "RemoveSpecialChars", RemoveSpecialChars, t)
+	testOneCase("abcd", "abcd", "RemoveSpecialChars", RemoveSpecialChars, t)
 }
 
 func TestConvertSpecialCharsToSpace(t *testing.T) {
-	testOneCase := func(s, expS string) {
-		convertedS := ConvertSpecialCharsToSpace(s)
-		if convertedS != expS {
-			t.Errorf("ConvertSpecialCharsToSpace([%s]) == [%s]; expected [%s]", s, convertedS, expS)
-		}
-	}
-
-	testOneCase(" ", " ")
-	testOneCase("#abcd$efgh%", " abcd efgh ")
-	testOneCase("abcd", "abcd")
+	testOneCase(" ", " ", "ConvertSpecialCharsToSpace", ConvertSpecialCharsToSpace, t)
+	testOneCase("#abcd$efgh%", " abcd efgh ", "ConvertSpecialCharsToSpace", ConvertSpecialCharsToSpace, t)
+	testOneCase("abcd", "abcd", "ConvertSpecialCharsToSpace", ConvertSpecialCharsToSpace, t)
 }
 
 func TestJaccardSimilarity(t *testing.T) {

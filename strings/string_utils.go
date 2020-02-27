@@ -11,6 +11,7 @@ var alphabet_size int
 var char_map map[byte]int
 var non_alnum_pattern *regexp.Regexp
 var sp_char_pattern *regexp.Regexp
+var space_remover *strings.Replacer
 
 func init() {
 	alphabet_size = len(alphabet)
@@ -22,6 +23,11 @@ func init() {
 
 	non_alnum_pattern = regexp.MustCompile("[^a-z0-9]+")
 	sp_char_pattern = regexp.MustCompile("[^a-z0-9 ]+")
+    space_remover = strings.NewReplacer(" ", "")
+}
+
+func RemoveSpaces(s string) string {
+	return space_remover.Replace(s)
 }
 
 func RemoveSpecialChars(s string) string {
