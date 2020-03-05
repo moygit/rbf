@@ -12,7 +12,7 @@
 //   # no params, just use default
 //
 // And now in code:
-//   calculateFeatures, calculateFeaturesForArray := features.GetFeatureCalcFuncs(configString)
+//   calculateFeatures, calculateFeaturesForArray := features.CreateFeatureCalcFuncs(configString)
 // And you can then use the `calculateFeatures` and `calculateFeaturesForArray` functions
 // to calculate features for either a single string or an array of strings.
 //   features := calculateFeatures("abcd")
@@ -33,9 +33,45 @@ import (
 // Given a feature-set config string, get functions that calculate the specified features for an input string.
 // Two functions are returned, one to calculate features for a single string, and a second to calculate features
 // for an array of strings. See package godoc for example usage.
-func GetFeatureCalcFuncs(confStr string) (func(string) []byte, func([]string) [][]byte) {
+func CreateFeatureCalcFuncs(confStr string) (func(string) []byte, func([]string) [][]byte) {
 	configs := getConfigsFromYaml(confStr)
-	return makeFeatureCalculationFunctions(configs)
+
+	// Calculate feature-set sizes and positions in feature-array
+	featureDefinitions := make([]featureSetRealized, len(configs))
+	var startPos int
+	var totalNumFeatures int
+	for i, config := range configs {
+		thisFeatureSetSize := int(config.Size())
+		totalNumFeatures += thisFeatureSetSize
+		featureDefinitions[i] = featureSetRealized{startPos, totalNumFeatures, config.FromStringInPlace}
+		startPos += thisFeatureSetSize
+	}
+
+	// Given an input string and a byte slice to contain features, calculate the features
+	// from each contained feature-set and put them in the appropriate place in the byte slice.
+	fromStringInPlace := func(input string, features []byte) {
+		for _, feature := range featureDefinitions {
+			feature.fromStringInPlace(input, features[feature.start:feature.end])
+		}
+	}
+
+	fromString := func(input string) []byte {
+		features := make([]byte, totalNumFeatures)
+		fromStringInPlace(input, features)
+		return features
+	}
+
+	fromStringArray := func(inputArray []string) [][]byte {
+		featuresArray2D := make([][]byte, len(inputArray))
+		flattenedFeaturesArray := make([]byte, len(inputArray)*totalNumFeatures)
+		for i, input := range inputArray {
+			featuresArray2D[i] = flattenedFeaturesArray[(i * totalNumFeatures):((i + 1) * totalNumFeatures)]
+			fromStringInPlace(input, featuresArray2D[i])
+		}
+		return featuresArray2D
+	}
+
+	return fromString, fromStringArray
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -84,46 +120,6 @@ func init() {
 			CHAR_REVERSE_MAP[int32((i*alphabet_size)+j)] = alphabet[i:i+1] + alphabet[j:j+1]
 		}
 	}
-}
-
-// For example usage please see package godoc above.
-func makeFeatureCalculationFunctions(configs []featureSetConfig) (func(string) []byte, func([]string) [][]byte) {
-	// Calculate feature-set sizes and positions in feature-array
-	featureDefinitions := make([]featureSetRealized, len(configs))
-	var startPos int
-	var totalNumFeatures int
-	for i, config := range configs {
-		thisFeatureSetSize := int(config.Size())
-		totalNumFeatures += thisFeatureSetSize
-		featureDefinitions[i] = featureSetRealized{startPos, totalNumFeatures, config.FromStringInPlace}
-		startPos += thisFeatureSetSize
-	}
-
-	// Given an input string and a byte slice to contain features, calculate the features
-	// from each contained feature-set and put them in the appropriate place in the byte slice.
-	fromStringInPlace := func(input string, features []byte) {
-		for _, feature := range featureDefinitions {
-			feature.fromStringInPlace(input, features[feature.start:feature.end])
-		}
-	}
-
-	fromString := func(input string) []byte {
-		features := make([]byte, totalNumFeatures)
-		fromStringInPlace(input, features)
-		return features
-	}
-
-	fromStringArray := func(inputArray []string) [][]byte {
-		featuresArray2D := make([][]byte, len(inputArray))
-		flattenedFeaturesArray := make([]byte, len(inputArray)*totalNumFeatures)
-		for i, input := range inputArray {
-			featuresArray2D[i] = flattenedFeaturesArray[(i * totalNumFeatures):((i + 1) * totalNumFeatures)]
-			fromStringInPlace(input, featuresArray2D[i])
-		}
-		return featuresArray2D
-	}
-
-	return fromString, fromStringArray
 }
 
 func normalizeString(s string) string {

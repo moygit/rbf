@@ -12,7 +12,7 @@ func TestFeatureSetConfig(t *testing.T) {
 - feature_type: followgrams
   window_size: 3
 `
-	calculateFeatures, _ := GetFeatureCalcFuncs(featureSetConfigStr)
+	calculateFeatures, _ := CreateFeatureCalcFuncs(featureSetConfigStr)
 	followgrams := calculateFeatures("abcdefgh")
 
 	// then:
@@ -60,7 +60,7 @@ func TestFeatureSetConfig(t *testing.T) {
 - feature_type: followgrams
   window_size: 6
 `
-	calculateFeatures, _ = GetFeatureCalcFuncs(featureSetConfigStr)
+	calculateFeatures, _ = CreateFeatureCalcFuncs(featureSetConfigStr)
 	followgrams = calculateFeatures("aaaaaaaa")
 
 	// then:

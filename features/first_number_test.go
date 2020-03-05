@@ -30,8 +30,8 @@ func TestGetFirstNumberAsString(t *testing.T) {
 
 func TestGetFirstNumberFeature(t *testing.T) {
 	// given:
-	fn := firstNumber{20}
-	_, fromStringArray := makeFeatureCalculationFunctions([]featureSetConfig{fn})
+	config := "- feature_type: first_number\n  count: 20"
+	_, fromStringArray := CreateFeatureCalcFuncs(config)
 	strs := []string{"123 main st 789", "1st st 456 789", "abcd 234 main st 789", "main st", "main st 345"}
 	expectedNums := []byte{123, 456 % 256, 234, 0, 345 % 256}
 	// when:

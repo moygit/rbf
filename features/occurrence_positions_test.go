@@ -9,8 +9,8 @@ import (
 
 func TestGetOccurrencePositions(t *testing.T) {
 	// given:
-	o := occurrencePositions{true, 3}
-	_, fromStringArray := makeFeatureCalculationFunctions([]featureSetConfig{o})
+	config := "- feature_type: occurrence_positions\n  direction_is_head: true\n  num_occurrences: 3"
+	_, fromStringArray := CreateFeatureCalcFuncs(config)
 
 	// when:
 	occurrencePositions := fromStringArray([]string{"", "abcdefgh"})
@@ -32,8 +32,8 @@ func TestGetOccurrencePositions(t *testing.T) {
 
 func TestGetLongOccurrencePositions(t *testing.T) {
 	// given
-	o := occurrencePositions{true, 3}
-	fromString, _ := makeFeatureCalculationFunctions([]featureSetConfig{o})
+	config := "- feature_type: occurrence_positions\n  direction_is_head: true\n  num_occurrences: 3"
+	fromString, _ := CreateFeatureCalcFuncs(config)
 
 	// when:
 	occurrencePositions := fromString(strings.Repeat("a", 400))
@@ -54,8 +54,8 @@ func TestGetLongOccurrencePositions(t *testing.T) {
 
 func TestBackwardOccurrencePositions(t *testing.T) {
 	// given:
-	o := occurrencePositions{false, 3}
-	_, fromStringArray := makeFeatureCalculationFunctions([]featureSetConfig{o})
+	config := "- feature_type: occurrence_positions\n  direction_is_head: false\n  num_occurrences: 3"
+	_, fromStringArray := CreateFeatureCalcFuncs(config)
 
 	// when:
 	occurrencePositions := fromStringArray([]string{"", "abcdefgh"})
@@ -77,8 +77,8 @@ func TestBackwardOccurrencePositions(t *testing.T) {
 
 func TestGetBackwardLongOccurrencePositions(t *testing.T) {
 	// given
-	o := occurrencePositions{false, 3}
-	fromString, _ := makeFeatureCalculationFunctions([]featureSetConfig{o})
+	config := "- feature_type: occurrence_positions\n  direction_is_head: false\n  num_occurrences: 3"
+	fromString, _ := CreateFeatureCalcFuncs(config)
 
 	// when:
 	occurrencePositions := fromString(strings.Repeat("a", 400) + "bb")
