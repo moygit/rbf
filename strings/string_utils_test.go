@@ -19,11 +19,11 @@ const s3 = "e r lr sdi a1eihp0 c0175ieur"       // permutation of s0, don't want
 const t0 = "06 louxembourg paris 75006 fr"
 const t1 = "96 rue beaubourg paris 75003 fr"
 
-func testOneCase(s, expS, fName string, f func(string)string, t *testing.T) {
-    convertedS := f(s)
-    if convertedS != expS {
-        t.Errorf("%s([%s]) == [%s]; expected [%s]", fName, s, convertedS, expS)
-    }
+func testOneCase(s, expS, fName string, f func(string) string, t *testing.T) {
+	convertedS := f(s)
+	if convertedS != expS {
+		t.Errorf("%s([%s]) == [%s]; expected [%s]", fName, s, convertedS, expS)
+	}
 }
 
 func TestRemoveSpaces(t *testing.T) {

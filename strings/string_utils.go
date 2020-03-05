@@ -23,7 +23,7 @@ func init() {
 
 	non_alnum_pattern = regexp.MustCompile("[^a-z0-9]+")
 	sp_char_pattern = regexp.MustCompile("[^a-z0-9 ]+")
-    space_remover = strings.NewReplacer(" ", "")
+	space_remover = strings.NewReplacer(" ", "")
 }
 
 func RemoveSpaces(s string) string {

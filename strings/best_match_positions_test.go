@@ -93,18 +93,20 @@ func TestGetBestMatchPositions(t *testing.T) {
 	}
 
 	// test cases:
-	ref := "abcd"
+	ref := "ab cd"
 	s1 := ""
 	s2 := "a"
 	s3 := "ab"
-	s4 := "abcde"
-	s5 := "abcdefgh"
-	s6 := "abcdefgh abcd"
+	s4 := "ab cde"
+	s5 := "ab cdefgh"
+	s6 := "ab cdefgfeab cd"
+	s7 := " abcd "
 
 	compare(ref, s1, []int{})
 	compare(ref, s2, []int{})
 	compare(ref, s3, []int{})
 	compare(ref, s4, []int{0})
-	compare(ref, s5, []int{0})
-	compare(ref, s6, []int{0, 9})
+	compare(ref, s5, []int{0, 2})     // counts are [5, 4, 4, 2, 1], so also have local max at 2
+	compare(ref, s6, []int{0, 2, 10}) // counts are [5, 4, 4, 2, 1, 0, 1, 2, 3, 4, 5]
+	compare(ref, s7, []int{1})        // get only 1, not 0
 }
