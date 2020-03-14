@@ -19,12 +19,13 @@ func (forest RandomBinaryForest) FindPointDedupResults(queryPoint []byte) map[in
 // Returns: for each tree in the forest, a slice of indices into the training feature-array
 // (since the caller/wrapper might have different things they want to do with this).
 // This method does not dedup results -- each tree's results are a different slice.
-func (forest RandomBinaryForest) FindPointAllResults(queryPoint []byte) [][]int32 {
-    results := make([][]int32, len(forest.Trees))
-    for i, tree := range forest.Trees {
-        results[i] = tree.findPoint(queryPoint)
-    }
-    return results
+func (forest RandomBinaryForest) FindPointAllResults(queryPoint []byte) (count int, results [][]int32) {
+	results = make([][]int32, len(forest.Trees))
+	for i, tree := range forest.Trees {
+		results[i] = tree.findPoint(queryPoint)
+		count += len(results[i])
+	}
+	return
 }
 
 // A "point" is a feature-array. Search for one point in this tree.
