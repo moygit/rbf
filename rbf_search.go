@@ -1,20 +1,18 @@
 package rbf
 
-import "github.com/Workiva/go-datastructures/bitarray"
-
 // Query the forest for a single point. Returns indices into the training feature-array
 // (since the caller/wrapper might have different things they want to do with this).
 // Since multiple trees might return the same result points, this method dedups the results.
-func (forest RandomBinaryForest) FindPointDedupResults(queryPoint []byte) []uint64 {
+func (forest RandomBinaryForest) FindPointDedupResults(queryPoint []byte) map[int32]bool {
 	// query each tree and get results (indices into training feature-array)
-	resultIndices := bitarray.NewSparseBitArray()
+	resultIndices := make(map[int32]bool)
 	for _, tree := range forest.Trees {
 		treeResultIndices := tree.findPoint(queryPoint)
 		for _, index := range treeResultIndices {
-			resultIndices.SetBit(uint64(index))
+			resultIndices[index] = true
 		}
 	}
-	return resultIndices.ToNums()
+	return resultIndices
 }
 
 // Query the forest for a single point.

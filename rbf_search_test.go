@@ -12,7 +12,7 @@ func TestFindPoint(t *testing.T) {
 	// when:
 	queryResultIndices := forest.FindPointDedupResults(queryPoint)
 	// then:
-	if len(queryResultIndices) != 1 || queryResultIndices[0] != 0 {
-		t.Errorf("queryResultIndices == %v, expected %v", queryResultIndices, []uint64{0})
+	if len(queryResultIndices) != 1 || !queryResultIndices[0] {
+		t.Errorf("queryResultIndices == %v, expected %v", queryResultIndices, map[int32]bool{0: true})
 	}
 }
