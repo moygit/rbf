@@ -24,25 +24,26 @@ type Config struct {
 
 func main() {
 	config := getConfig()
-	train := readImagesFile("train_images.bin")
-	test := readImagesFile("test_images.bin")
-	trainLabels := readLabelsFile("train_labels.txt")
-	testLabels := readLabelsFile("test_labels.txt")
+	train := readImagesFile("fashion/train_images.bin")
+	test := readImagesFile("fashion/test_images.bin")
+	trainLabels := readLabelsFile("fashion/train_labels.bin")
+	testLabels := readLabelsFile("fashion/test_labels.bin")
 
 	trainStartTime := time.Now().UnixNano()
 	forest := rbf.TrainForest(train, config.numTrees, config.depth, config.leafSize, config.numFeaturesToCompare)
-	f, _ := os.Create("mnist_forest_64_20_4_28.bin")
-	forest.WriteToWriter(f)
-	f.Close()
+	//filename := fmt.Sprintf("mnist_forest_%d_%d_%d_%d.bin", config.numTrees, config.depth, config.leafSize, config.numFeaturesToCompare)
+	//f, _ := os.Create(filename)
+	//forest.WriteToWriter(f)
+	//f.Close()
 
-    //f, _ := os.Open("mnist_forest_256_20_64_28.bin")
-    //f, _ = os.Open("mnist_forest_64_20_4_28.bin")
-    //forest := rbf.ReadForestFromReader(f)
-    //f.Close()
+	//filename := fmt.Sprintf("mnist_forest_%d_%d_%d_%d.bin", config.numTrees, config.depth, config.leafSize, config.numFeaturesToCompare)
+	//f, _ := os.Open(filename)
+	//forest := rbf.ReadForestFromReader(f)
+	//f.Close()
 
 	evalStartTime := time.Now().UnixNano()
-	matchCount := evalL2(forest, train, test, trainLabels, testLabels, config.numNeighbors)
-	//matchCount := evalPlurality(forest, test, trainLabels, testLabels)
+	//matchCount := evalL2(forest, train, test, trainLabels, testLabels, config.numNeighbors)
+	matchCount := evalPlurality(forest, test, trainLabels, testLabels)
 	evalFinishTime := time.Now().UnixNano()
 
 	trainTime := float64(evalStartTime-trainStartTime) / (1000000.0 * 1000.0)
@@ -92,12 +93,7 @@ func readLabelsFile(filename string) []byte {
 		log.Panicf("error reading %s: %v\n", filename, err)
 	}
 
-	labelBuf := make([]byte, size/2)
-	for i := range labelBuf {
-		labelBuf[i] = buf[2*i] - '0'
-	}
-
-	return labelBuf
+	return buf
 }
 
 func getFileSize(file *os.File) int64 {
@@ -138,9 +134,9 @@ func l2Dist(v1, v2 []byte) int {
 }
 
 func evalOneImageL2(forest rbf.RandomBinaryForest, train [][]byte, testImage []byte, trainLabels []byte, testLabel byte, numNeighbors int32) bool {
-    // query forest
+	// query forest
 	resultsCount, allTreeResults := forest.FindPointAllResults(testImage)
-    // combine all returned results into single slice
+	// combine all returned results into single slice
 	allResults := make([]int32, resultsCount)
 	for _, treeResults := range allTreeResults {
 		for _, result := range treeResults {
@@ -148,13 +144,13 @@ func evalOneImageL2(forest rbf.RandomBinaryForest, train [][]byte, testImage []b
 		}
 	}
 
-    // order them by L2 distance to test point
+	// order them by L2 distance to test point
 	sort.Slice(allResults, func(i, j int) bool {
 		return l2Dist(testImage, train[allResults[i]]) < l2Dist(testImage, train[allResults[j]])
 	})
-    // pick out the k nearest ones
+	// pick out the k nearest ones
 	labelCounts := make([]int, 10)
-    for _, index := range allResults[:numNeighbors] {
+	for _, index := range allResults[:numNeighbors] {
 		labelCounts[trainLabels[index]] += 1
 	}
 	argmaxLabel := argmax(labelCounts)
