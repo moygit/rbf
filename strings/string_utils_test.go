@@ -45,6 +45,13 @@ func TestConvertSpecialCharsToSpace(t *testing.T) {
 	testOneCase("abcd", "abcd", "ConvertSpecialCharsToSpace", ConvertSpecialCharsToSpace, t)
 }
 
+func TestShrinkMultipleSpaces(t *testing.T) {
+	testOneCase("", "", "ShrinkMultipleSpaces", ShrinkMultipleSpaces, t)
+	testOneCase("  ", "", "ShrinkMultipleSpaces", ShrinkMultipleSpaces, t)
+	testOneCase("   ", "", "ShrinkMultipleSpaces", ShrinkMultipleSpaces, t)
+	testOneCase(" abcd  efgh ", " abcd efgh ", "ShrinkMultipleSpaces", ShrinkMultipleSpaces, t)
+}
+
 func TestJaccardSimilarity(t *testing.T) {
 	testOneCase := func(s1, s2 string, simFunc func(string, string) float64, funcName string, expSim float64) {
 		sim := simFunc(s1, s2)

@@ -12,6 +12,7 @@ var char_map map[byte]int
 var non_alnum_pattern *regexp.Regexp
 var sp_char_pattern *regexp.Regexp
 var space_remover *strings.Replacer
+var multispace_remover *strings.Replacer
 
 func init() {
 	alphabet_size = len(alphabet)
@@ -24,6 +25,7 @@ func init() {
 	non_alnum_pattern = regexp.MustCompile("[^a-z0-9]+")
 	sp_char_pattern = regexp.MustCompile("[^a-z0-9 ]+")
 	space_remover = strings.NewReplacer(" ", "")
+    multispace_remover = strings.NewReplacer("  ", " ")
 }
 
 func RemoveSpaces(s string) string {
@@ -36,6 +38,15 @@ func RemoveSpecialChars(s string) string {
 
 func ConvertSpecialCharsToSpace(s string) string {
 	return non_alnum_pattern.ReplaceAllLiteralString(s, " ")
+}
+
+func ShrinkMultipleSpaces(input string) (output string) {
+	// This is ugly but 90x faster than using regexp.Regexp.ReplaceAllStringFunc even though we're doing multiple passes
+	// The multiple passes are necessary because the spaces might overlap.
+	var last string
+	for last, output = "", input; output != last; last, output = output, multispace_remover.Replace(output) {
+	}
+	return strings.TrimSpace(output)
 }
 
 // Experimental and inefficient, not in use right now and will likely be removed.
