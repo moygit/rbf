@@ -95,7 +95,6 @@ func trainOneTree(featureArray [][]byte, treeDepth, leafSize, numFeatures, numFe
 func (tree *RandomBinaryTree) calculateOneNode(featureArray [][]byte,
 	leafSize, numFeatures, numFeaturesToCompare,
 	indexStart, indexEnd int32, treeArrayPos int, depth int) {
-	// logger.Printf("indexStart: %d, indexEnd: %d, treeArrayPos: %d\n", indexStart, indexEnd, treeArrayPos)
 	if 2*treeArrayPos+2 >= len(tree.treeFirst) {
 		// Special termination condition to regulate depth.
 		tree.treeFirst[treeArrayPos], tree.treeSecond[treeArrayPos] = high_bit_1^indexStart, high_bit_1^indexEnd
@@ -247,13 +246,41 @@ func splitOneFeature(featureHistogram []int32, totalZeroMoment int32, count int3
 	return totalMoment, pos, leftCount
 }
 
+// Find the median of a list of feature values given the feature frequencies.
+// There are just two cases:
+// - The median lies in a particular bucket, in which case we just pick that bucket.
+// - The median sits between two buckets. If there are 10 items, for example, this
+//   can happen iff the 5th item is in bucket A and the 6th in bucket B. In this
+//   case we want (A + B) / 2
+func simpleSplitOneFeature(featureHistogram []int32, count int32) (int32, int32) {
+	var leftPos, rightPos, leftCount int32
+
+	for 2*leftCount < count {
+		leftCount += featureHistogram[leftPos]
+		leftPos += 1
+	}
+	leftPos -= 1
+
+	if 2*leftCount > count {
+		return leftPos, leftCount
+	}
+	// leftCount == half of count
+	newCount := leftCount
+	for rightPos = leftPos; 2*newCount == count; {
+		rightPos += 1
+		newCount += featureHistogram[rightPos]
+	}
+	return (leftPos + rightPos) / 2, leftCount
+}
+
 // From the given features find the one which splits closest to the median.
 func getSimpleBestFeature(featureFrequencies [][]int32, featureWeightedTotals []int32, totalCount int32) (int32, byte) {
 	bestSplitDiff := math.MaxFloat32
 	var bestFeatureNum int
 	var bestFeatureSplitValue int32
 	for i, freq := range featureFrequencies {
-		_, splitValue, leftCount := splitOneFeature(freq, featureWeightedTotals[i], totalCount)
+		// _, splitValue, leftCount := splitOneFeature(freq, featureWeightedTotals[i], totalCount)
+		splitValue, leftCount := simpleSplitOneFeature(freq, totalCount)
 		splitDiff := math.Abs(float64(leftCount - (totalCount - leftCount))) // leftCount - rightCount
 		if splitDiff < bestSplitDiff {
 			bestSplitDiff = splitDiff

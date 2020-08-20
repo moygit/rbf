@@ -70,6 +70,31 @@ func TestSplitOneFeature(t *testing.T) {
 	runOneTest(L3, 6.5, 2, 3)
 }
 
+func TestSimpleSplitOneFeature(t *testing.T) {
+	runOneTest := func(L []int32, expPos int32, expLeftCount int32) {
+		var count int32
+		for _, x := range L {
+			count += int32(x)
+		}
+		// when
+		pos, leftCount := simpleSplitOneFeature(L, count)
+		// then
+		if (pos != expPos) || (leftCount != expLeftCount) {
+			t.Errorf("L == %v. (pos, leftCount) == (%d, %d); expected (%d, %d)",
+				L, pos, leftCount, expPos, expLeftCount)
+		}
+	}
+
+	L1 := []int32{10, 5, 4, 0, 0, 11, 12, 13}
+	runOneTest(L1, 5, 30)
+
+	L2 := []int32{10, 0, 0, 0, 0}
+	runOneTest(L2, 0, 10)
+
+	L3 := []int32{1, 1, 1, 1, 1}
+	runOneTest(L3, 2, 3)
+}
+
 func TestGetBestFeature(t *testing.T) {
 	// given:
 	featureFrequencies := [][]int32{{1, 1, 1, 1, 1}, {5, 0, 0, 0, 0}}
