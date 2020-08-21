@@ -52,14 +52,35 @@ A = [5, 5, 5, 6, 6, 6]^T and B = [0, 0, 0, 10, 10, 10]^T, then we want to choose
 B so that noisy data is less likely to fall on the wrong side of the split).
 
 These two goals can conflict, so right now we just use a simple split
-function that splits closest to the median. This has the added advantage that
-you don't need to normalize features to have similar distributions and scales,
-but two disadvantages: first, the noise-sensitivity mentioned above, and second,
-we're being slightly loose with the notion of ``nearest`` (if you care about
-the latter it can be solved easily by normalizing scale).
+function that splits closest to the median. We have another split function that
+takes variance into account, but this is currently unused.
 
-We have another split function that takes variance into account, but this is
-currently unused.
+This median-splitting has some pros and cons, outlined below.
+
+
+## Median-splitting pros and cons
+
+RBFs' current simple-split uses the median, not a metric. The more complex split,
+currently unused, factors variance into the split for the reasons described above,
+but it still doesn't use a metric.
+
+This has the advantage that you don't need to normalize features and ensure they have
+similar distributions and scales, but it has two disadvantages: first, as mentioned
+above, not using variance makes the split more sensitive to noise in the data. TL;DR
+of the second issue: not using a metric means we're being slightly loose with the
+notion of ``nearest``.
+
+Details of the latter issue: suppose you have a geographic distance feature and a
+time-of-day feature. They have very different scales, so ``distance`` means something
+very different with respect to these two features. You can scale them both down to
+[0, 1], but now suppose you also have a person's height or blood-pressure as a
+feature, or the price of an item. You can scale these down too, but they have very
+different distributions than the first two. Nearest neighbors algorithms are very
+sensitive to these differences, so now maybe you want histogram-normalization---and
+the simple solution is starting to become messy. RBFs find *nearest-quantile*
+neighbors, so they don't care about scale and distribution. To be clear: the
+distribution could actually matter, so this isn't a free lunch, it's just a quick
+lunch.
 
 
 ## Note on data science usage
